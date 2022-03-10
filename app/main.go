@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"log"
+	"net/http"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -23,6 +25,8 @@ func main() {
 	u.Timeout = 60
 
 	updates := bot.GetUpdatesChan(u)
+
+	go healthcheck()
 
 	for update := range updates {
 		if update.Message != nil { // If we got a message
@@ -94,4 +98,14 @@ func main() {
 			}
 		}
 	}
+}
+
+func healthcheck() {
+	log.Printf("Starts webserver")
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	})
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
