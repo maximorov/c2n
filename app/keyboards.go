@@ -55,6 +55,9 @@ var (
 			tgbotapi.NewKeyboardButtonLocation(CommandGetLocation),
 		),
 		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandTakeLocationManual),
+		),
+		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandToMain),
 		),
 	)

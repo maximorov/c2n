@@ -48,20 +48,23 @@ func main() {
 			case CommandInformation:
 				msg.Text = Information
 			case CommandRadius1:
-				//msg.ReplyMarkup =
+				msg.ReplyMarkup = GetLocationKeyboard
 				//msg.Text =
 			case CommandRadius3:
-				//msg.ReplyMarkup =
+				msg.ReplyMarkup = GetLocationKeyboard
 				//msg.Text =
 			case CommandRadius5:
-				//msg.ReplyMarkup =
+				msg.ReplyMarkup = GetLocationKeyboard
 				//msg.Text =
 			case CommandAllCity:
 				//msg.ReplyMarkup =
 				//msg.Text =
 			case CommandChooseCity:
-				//msg.ReplyMarkup =
-				//msg.Text =
+			//msg.ReplyMarkup =
+			//msg.Text =
+			case CommandTakeLocationManual:
+			//msg.ReplyMarkup =
+			//msg.Text =
 			case CommandContinueHelp:
 				//msg.ReplyMarkup =
 				//msg.Text =
