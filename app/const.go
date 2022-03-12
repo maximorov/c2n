@@ -17,6 +17,7 @@ const (
 	CommandProcessHelp        = "У процесі"
 	CommandGetContact         = "Надати контакти"
 	CommandGetLocation        = "Надати локацію"
+	CommandCreateTask         = "Чим потрібно допомогти"
 
 	Information = "тут виводиться довідка"
 )

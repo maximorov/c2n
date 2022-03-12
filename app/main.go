@@ -1,21 +1,28 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"go.uber.org/zap"
+	"helpers/app/bootstrap"
+	"helpers/app/db"
+	"helpers/app/domain/task"
 	"html"
 	"log"
 	"net/http"
 )
 
 func init() {
-	InitEnv("")
-	initConfig()
-	initLogger()
+	bootstrap.InitEnv(``)
+	bootstrap.InitConfig()
+	bootstrap.InitLogger()
 }
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI(Cnf.TelegramToken)
+	ctx := context.Background()
+	connPool := db.Pool(ctx, bootstrap.Cnf.DB)
+	bot, err := tgbotapi.NewBotAPI(bootstrap.Cnf.TelegramToken)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -85,6 +92,14 @@ func main() {
 			case CommandProcessHelp:
 				//msg.ReplyMarkup =
 				//msg.Text =
+			case CommandCreateTask:
+				s := task.NewService(connPool)
+				err := s.CreateTask(ctx, update.Message.Text)
+				if err != nil {
+					zap.S().Error(err)
+				}
+				//msg.ReplyMarkup =
+				//msg.Text =
 			default:
 
 			}
@@ -110,7 +125,7 @@ func healthcheck() {
 	log.Printf("Starts webserver")
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+		_, _ = fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

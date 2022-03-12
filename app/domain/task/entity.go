@@ -16,3 +16,5 @@ type Task struct {
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 }
+
+func (s *Task) IsEntity() {}
