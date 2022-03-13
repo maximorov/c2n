@@ -7,11 +7,7 @@ BEGIN
 RETURN NEW;
 END;
 $$;
-create trigger updated
-    before update
-    on tasks
-    for each row
-    execute procedure set_updated_column();
+
 create type enum_task_activity_status as enum ('taken', 'completed', 'expired', 'refused');
 create type enum_task_status as enum ('raw', 'new', 'in_progress', 'done', 'expired', 'cancelled', 'refused');
 
@@ -28,6 +24,12 @@ create table if not exists tasks
     created  timestamp        default CURRENT_TIMESTAMP                           not null,
     updated  timestamp
     );
+
+create trigger updated
+    before update
+    on tasks
+    for each row
+    execute procedure set_updated_column();
 
 create unique index if not exists tasks_id_uindex
     on tasks (id);
