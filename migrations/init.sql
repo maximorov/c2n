@@ -95,3 +95,6 @@ create table if not exists tasks_appeales
     task_id bigint       not null,
     text    varchar(255) not null
     );
+
+alter table users_soc_nets
+    add soc_net_id varchar(255) not null
