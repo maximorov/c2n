@@ -2,14 +2,18 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 	"helpers/app/bot"
 	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
+	"helpers/app/domains/user"
+	"helpers/app/domains/user/soc_net"
 	"helpers/app/usecase"
 	"log"
 	"strconv"
@@ -35,6 +39,11 @@ func botHandlers(
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 		msg.ReplyToMessageID = update.Message.MessageID
+
+		_, err := authenticateUser(ctx, update, connPool)
+		if err != nil {
+			zap.S().Error(err)
+		}
 
 		// Extract the command from the Message.
 		switch update.Message.Text {
@@ -129,9 +138,38 @@ func botHandlers(
 			msg.Text = "Ви поділилися локацією..." + fmt.Sprintf("\nШирота: %v\nДовгота:%v", update.Message.Location.Longitude, update.Message.Location.Latitude)
 		}
 
-		_, err := botApi.Send(msg)
+		_, err = botApi.Send(msg)
 		if err != nil {
 			zap.S().Error(err)
 		}
 	}
+}
+
+func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn) (int, error) {
+	userSocNet := soc_net.UserSocNet{
+		UserSocNetID: fmt.Sprintf("%d", update.Message.From.ID),
+	}
+
+	s := soc_net.NewService(connPool)
+
+	us, err := s.GetOneBySocNetID(ctx, userSocNet.UserSocNetID)
+	if err != nil {
+		if errors.As(err, &pgx.ErrNoRows) {
+			su := user.NewService(connPool)
+			userID, err := su.CreateOne(ctx, update.Message.From.UserName, 0)
+			if err != nil {
+				zap.S().Error(err)
+			}
+
+			_, err = s.CreateOne(ctx, userID, userSocNet.UserSocNetID)
+			if err != nil {
+				zap.S().Error(err)
+			}
+			return us.ID, nil
+		}
+
+		zap.S().Error(err)
+	}
+
+	return us.ID, err
 }
