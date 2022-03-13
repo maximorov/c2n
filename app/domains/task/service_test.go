@@ -15,7 +15,9 @@ func TestService_CreateTask(t *testing.T) {
 	ctx := context.Background()
 	connPool := db.Pool(ctx, bootstrap.Cnf.DB)
 	s := NewService(connPool)
-	_, err := s.CreateTask(ctx, 1, 12, 13, `update.Message.Text`)
+	_, err := s.CreateTask(ctx, 1, 12, 13, `Светлана. Двое детей. Нужна еда.
+Харьковское шоссе.
+Номер: 099 222 33 44`)
 	if err != nil {
 		t.Error(err)
 	}

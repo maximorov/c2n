@@ -18,6 +18,8 @@ const (
 	CommandGetContact         = "Надати контакти"
 	CommandGetLocation        = "Надати локацію"
 	CommandCreateTask         = "Чим потрібно допомогти"
+	CommandsWillExecute       = "Виконаю"
+	CommandsRefuseForMe       = "Не показувати"
 
 	Information = "тут виводиться довідка"
 )

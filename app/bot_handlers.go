@@ -5,8 +5,11 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
+	"helpers/app/bot"
+	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
+	"helpers/app/domains/task/activity"
 	"helpers/app/usecase"
 	"log"
 	"strconv"
@@ -14,13 +17,17 @@ import (
 
 func botHandlers(
 	ctx context.Context,
-	bot *tgbotapi.BotAPI,
+	botApi *tgbotapi.BotAPI,
 	u tgbotapi.UpdateConfig,
 	connPool db.Conn,
 ) {
-	updates := bot.GetUpdatesChan(u)
+	handler := bot.Handler{activity.NewService(connPool)}
+	updates := botApi.GetUpdatesChan(u)
 	for update := range updates {
 		if update.Message == nil {
+			if handler.Handle(update.CallbackData()) {
+				continue
+			}
 			continue
 		}
 
@@ -39,17 +46,20 @@ func botHandlers(
 			if err != nil {
 				zap.S().Error(err)
 			}
-			msg.ReplyMarkup = nil
 			if len(tasks) == 0 {
 				msg.Text = "No tasks?"
-				_, err := bot.Send(msg)
+				_, err := botApi.Send(msg)
 				if err != nil {
 					zap.S().Error(err)
 				}
 			} else {
 				for _, t := range tasks {
-					msg.Text = t.Text
-					_, err := bot.Send(msg)
+					tId := strconv.Itoa(t.ID)
+					TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
+					TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
+					msg.ReplyMarkup = TasksListKeyboard
+					msg.Text = "Task " + tId + "\n" + t.Text
+					_, err := botApi.Send(msg)
 					if err != nil {
 						zap.S().Error(err)
 					}
@@ -96,7 +106,6 @@ func botHandlers(
 		case CommandProcessHelp:
 			//msg.ReplyMarkup =
 			//msg.Text =
-		case ``:
 		case CommandCreateTask:
 			s := task.NewService(connPool)
 			uId := 1
@@ -120,7 +129,7 @@ func botHandlers(
 			msg.Text = "Ви поділилися локацією..." + fmt.Sprintf("\nШирота: %v\nДовгота:%v", update.Message.Location.Longitude, update.Message.Location.Latitude)
 		}
 
-		_, err := bot.Send(msg)
+		_, err := botApi.Send(msg)
 		if err != nil {
 			zap.S().Error(err)
 		}
