@@ -25,12 +25,6 @@ create table if not exists tasks
     updated  timestamp
     );
 
-create trigger updated
-    before update
-    on tasks
-    for each row
-    execute procedure set_updated_column();
-
 create unique index if not exists tasks_id_uindex
     on tasks (id);
 
