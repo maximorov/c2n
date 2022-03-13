@@ -5,7 +5,7 @@ import (
 )
 
 type Task struct {
-	ID uint
+	ID uint `table_name:"tasks"`
 	//constraint tasks_pk
 	//primary key,
 	UserID    uint
