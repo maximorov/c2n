@@ -3,6 +3,7 @@ package task
 import (
 	"context"
 	"helpers/app/core"
+	"helpers/app/core/db"
 )
 
 var Schema = NewSchema()
@@ -15,7 +16,7 @@ func NewSchema() *core.TableSchema {
 	return core.NewTableSchema(&Task{})
 }
 
-func NewRepo(c core.Conn) *Repository {
+func NewRepo(c db.Conn) *Repository {
 	return &Repository{
 		core.NewRepository(c, Schema),
 	}
@@ -23,9 +24,37 @@ func NewRepo(c core.Conn) *Repository {
 
 func (s *Repository) CreateOne(ctx context.Context, entity map[string]interface{}) (retId int, err error) {
 	columns, vals := core.EntityToColumns(entity)
-	//columns, vals = core.AddCurrentTimeIfNotSet(ctx, columns, vals, "created", "updated")
-
 	err = core.CreateOne(ctx, s.Conn(), s.Schema().TableName(), columns, vals, &retId)
 
 	return
+}
+
+func (s *Repository) UpdateOne(ctx context.Context, entity map[string]interface{}, cond map[string]interface{}) (int, error) {
+	return core.UpdateOne(ctx, s.ConnPool, s.Schema().TableName(), entity, cond)
+}
+
+// Deprecated: Use FindOne or FindMany.
+func (s *Repository) FindOne(
+	ctx context.Context,
+	fields []string,
+	cond map[string]interface{},
+) (*Task, error) {
+	res := &Task{}
+	err := core.FindOne(ctx, s.ConnPool, s.Schema().TableName(), res, fields, cond)
+
+	return res, err
+}
+
+func (s *Repository) FindMany(
+	ctx context.Context,
+	fields []string,
+	cond map[string]interface{},
+) ([]*Task, error) {
+	var res []*Task
+	err := core.FindMany(ctx, s.ConnPool, s.Schema().TableName(), res, fields, cond)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

@@ -7,15 +7,19 @@ import (
 	"testing"
 )
 
-func TestService_CreateTask(t *testing.T) {
+func TestRepository_UpdateOne(t *testing.T) {
 	bootstrap.InitEnv(`../../../`)
 	bootstrap.InitConfig()
 	bootstrap.InitLogger()
 
 	ctx := context.Background()
 	connPool := db.Pool(ctx, bootstrap.Cnf.DB)
-	s := NewService(connPool)
-	_, err := s.CreateTask(ctx, 1, 12, 13, `update.Message.Text`)
+	s := NewRepo(connPool)
+	_, err := s.UpdateOne(
+		ctx,
+		map[string]interface{}{`status`: `new`},
+		map[string]interface{}{`id`: 1},
+	)
 	if err != nil {
 		t.Error(err)
 	}

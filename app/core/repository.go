@@ -4,17 +4,13 @@ import (
 	"context"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx"
+	"github.com/georgysavva/scany/pgxscan"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"helpers/app/core/db"
 	"reflect"
 	"time"
 )
-
-type Conn interface {
-	Exec(sql string, arguments ...interface{}) (commandTag pgx.CommandTag, err error)
-	Query(sql string, args ...interface{}) (*pgx.Rows, error)
-	QueryRow(sql string, args ...interface{}) *pgx.Row
-}
 
 type Entity interface {
 	IsEntity()
@@ -63,12 +59,12 @@ func (s *TableSchema) TableName() string { // @TODO: Add cache
 	return s._table
 }
 
-func NewRepository(cs Conn, sch *TableSchema) *Repository {
+func NewRepository(cs db.Conn, sch *TableSchema) *Repository {
 	return &Repository{cs, sch}
 }
 
 type Repository struct {
-	ConnPool Conn
+	ConnPool db.Conn
 	schema   *TableSchema
 }
 
@@ -80,11 +76,11 @@ func (s *Repository) Schema() *TableSchema {
 	return s.schema
 }
 
-func (s *Repository) Conn() Conn {
+func (s *Repository) Conn() db.Conn {
 	return s.ConnPool
 }
 
-func CreateOne(ctx context.Context, conn Conn, tName string, columns []string, vals []interface{}, retId interface{}) (err error) {
+func CreateOne(ctx context.Context, conn db.Conn, tName string, columns []string, vals []interface{}, retId interface{}) (err error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	query := psql.
 		Insert(`"` + tName + `"`).
@@ -93,13 +89,83 @@ func CreateOne(ctx context.Context, conn Conn, tName string, columns []string, v
 
 	if retId != nil {
 		sql, _, _ := query.ToSql()
-		err = conn.QueryRow(sql+" RETURNING id", vals...).Scan(retId)
+		err = conn.QueryRow(ctx, sql+" RETURNING id", vals...).Scan(retId)
 	} else {
 		sql, _, _ := query.ToSql()
-		_, err = conn.Exec(sql, vals...)
+		_, err = conn.Exec(ctx, sql, vals...)
 	}
 
 	return
+}
+
+func UpdateOne(ctx context.Context, conn db.Conn, tName string, entity map[string]interface{}, cond map[string]interface{}) (int, error) {
+	lenEntity := len(entity)
+	if lenEntity == 0 {
+		return 0, nil
+	}
+
+	copyEntity := make(map[string]interface{}, lenEntity)
+	for key, val := range entity {
+		copyEntity[key] = val
+	}
+
+	if len(copyEntity) == 0 {
+		return 0, nil
+	}
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	updateQuery := psql.Update(tName).Where(cond)
+
+	for col, val := range copyEntity {
+		updateQuery = updateQuery.Set(col, val)
+	}
+
+	sql, args, err := updateQuery.ToSql()
+	if err != nil {
+		return 0, err
+	}
+
+	cmdTag, err := conn.Exec(ctx, sql, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(cmdTag.RowsAffected()), nil
+}
+
+// Gets one record by condition
+func FindOne(ctx context.Context, conn db.Conn, tName string, result Entity, fields []string, condition map[string]interface{}) error {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sb := psql.Select(fields...).
+		From(`"` + tName + `"`).
+		Where(condition).
+		Limit(1)
+
+	sql, args, err := sb.ToSql()
+
+	err = pgxscan.Get(ctx, conn, result, sql, args...)
+	if err != nil {
+		return errors.WithMessagef(err, "sql query %s, args %+v", sql, args)
+	}
+	return nil
+}
+
+// Gets all record by condition
+// FindMany Gets many records by condition
+func FindMany(ctx context.Context, conn db.Conn, tName string, result interface{}, fields []string, condition map[string]interface{}) error {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sb := psql.Select(fields...).
+		From(`"` + tName + `"`).
+		Where(condition)
+
+	sql, args, err := sb.ToSql()
+
+	err = pgxscan.Select(ctx, conn, result, sql, args...)
+	if err != nil {
+		return errors.WithMessagef(err, "sql query %s, args %+v", sql, args)
+	}
+	return nil
 }
 
 // entityToColumns reflects on a struct and returns the values of fields with `db` tags,

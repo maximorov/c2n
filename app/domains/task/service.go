@@ -2,10 +2,10 @@ package task
 
 import (
 	"context"
-	"helpers/app/core"
+	"helpers/app/core/db"
 )
 
-func NewService(connPool core.Conn) *Service {
+func NewService(connPool db.Conn) *Service {
 	return &Service{repo: NewRepo(connPool)}
 }
 
@@ -17,7 +17,7 @@ func (s *Service) CreateTask(ctx context.Context, userId int, x, y float64, text
 	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:  userId,
 		`text`:     text,
-		`position`: core.CreatePoint(x, y),
+		`position`: db.CreatePoint(x, y),
 	})
 
 	return id, err

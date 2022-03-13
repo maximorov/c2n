@@ -1,14 +1,14 @@
 package task
 
 import (
-	"helpers/app/core"
+	"helpers/app/core/db"
 	"time"
 )
 
 type Task struct {
 	ID        int `table_name:"tasks"`
 	UserID    int
-	Position  core.Point
+	Position  db.Point
 	status    string
 	text      string
 	deadline  time.Time

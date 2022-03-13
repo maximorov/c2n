@@ -5,7 +5,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"helpers/app/bootstrap"
-	"helpers/app/db"
+	"helpers/app/core/db"
 	"html"
 	"log"
 	"net/http"

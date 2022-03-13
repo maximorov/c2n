@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"helpers/app/core"
+	"helpers/app/core/db"
 )
 
 var Schema = NewSchema()
@@ -15,7 +16,7 @@ func NewSchema() *core.TableSchema {
 	return core.NewTableSchema(&UserExecutor{})
 }
 
-func NewRepo(c core.Conn) *Repository {
+func NewRepo(c db.Conn) *Repository {
 	return &Repository{
 		core.NewRepository(c, Schema),
 	}

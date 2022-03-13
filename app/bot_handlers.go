@@ -5,7 +5,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
-	"helpers/app/core"
+	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"log"
 	"strconv"
@@ -15,7 +15,7 @@ func botHandlers(
 	ctx context.Context,
 	bot *tgbotapi.BotAPI,
 	u tgbotapi.UpdateConfig,
-	connPool core.Conn,
+	connPool db.Conn,
 ) {
 	updates := bot.GetUpdatesChan(u)
 	for update := range updates {
