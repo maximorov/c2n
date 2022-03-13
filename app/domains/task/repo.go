@@ -23,7 +23,7 @@ func NewRepo(c core.Conn) *Repository {
 
 func (s *Repository) CreateOne(ctx context.Context, entity map[string]interface{}) (retId int, err error) {
 	columns, vals := core.EntityToColumns(entity)
-	columns, vals = core.AddCurrentTimeIfNotSet(ctx, columns, vals, "created", "updated")
+	//columns, vals = core.AddCurrentTimeIfNotSet(ctx, columns, vals, "created", "updated")
 
 	err = core.CreateOne(ctx, s.Conn(), s.Schema().TableName(), columns, vals, &retId)
 

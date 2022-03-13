@@ -1,15 +1,14 @@
 package task
 
 import (
+	"helpers/app/core"
 	"time"
 )
 
 type Task struct {
-	ID uint `table_name:"tasks"`
-	//constraint tasks_pk
-	//primary key,
-	UserID    uint
-	Location  float64
+	ID        int `table_name:"tasks"`
+	UserID    int
+	Location  core.Point
 	status    string
 	text      string
 	deadline  time.Time

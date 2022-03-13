@@ -8,6 +8,7 @@ import (
 	"helpers/app/core"
 	"helpers/app/domains/task"
 	"log"
+	"strconv"
 )
 
 func botHandlers(
@@ -73,12 +74,14 @@ func botHandlers(
 				//msg.Text =
 			case CommandCreateTask:
 				s := task.NewService(connPool)
-				err := s.CreateTask(ctx, update.Message.Text)
+				uId := 1
+				x, y := 1.0, 1.0
+				taskId, err := s.CreateTask(ctx, uId, x, y, update.Message.Text)
 				if err != nil {
 					zap.S().Error(err)
 				}
 				//msg.ReplyMarkup =
-				//msg.Text =
+				msg.Text = strconv.Itoa(taskId)
 			default:
 
 			}

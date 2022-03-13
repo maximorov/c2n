@@ -13,8 +13,12 @@ type Service struct {
 	repo *Repository
 }
 
-func (s *Service) CreateTask(ctx context.Context, text string) error {
-	_, err := s.repo.CreateOne(ctx, map[string]interface{}{`text`: text})
+func (s *Service) CreateTask(ctx context.Context, userId int, x, y float64, text string) (int, error) {
+	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
+		`user_id`:  userId,
+		`text`:     text,
+		`location`: core.CreatePoint(x, y),
+	})
 
-	return err
+	return id, err
 }
