@@ -2,13 +2,11 @@ package bootstrap
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
 	"path/filepath"
-	"time"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -18,37 +16,38 @@ type Config struct {
 }
 
 type ConfigDb struct {
-	Host                 string        `env:"HOST" validate:"min=3"`
-	User                 string        `env:"USER" validate:"min=3"`
-	Password             string        `env:"PASSWORD" validate:"min=3"`
-	DBName               string        `env:"NAME" validate:"min=3"`
-	Port                 uint          `env:"PORT" validate:"min=1"`
-	MaxOpenCons          uint          `env:"MAX_OPEN_CONNS" validate:"min=1,bound-cons"`
-	MaxIdleCons          uint          `env:"MAX_IDLE_CONNS" validate:"min=0,bound-idle"`
-	MaxLifetimeMinutes   time.Duration `env:"MAX_LIFETIME_MINUTES" validate:"min=1m"`
-	MaxIdleMinutes       time.Duration `env:"MAX_IDLE_MINUTES" validate:"min=0m"`
-	Log                  uint          `env:"LOG" validate:"lte=6"`
-	PreferSimpleProtocol bool          `env:"PREFER_SIMPLE_PROTOCOL" envDefault:"true"`
-	SSLMode              string        `env:"SSL_MODE" envDefault:"disable" validate:"oneof=disable allow default require verify-ca verify-full"`
-	Timezone             string        `env:"TZ" envDefault:"UTC" validate:"timezone"`
+	Host                 string `env:"HOST" validate:"min=3"`
+	User                 string `env:"USER" validate:"min=3"`
+	Password             string `env:"PASSWORD" validate:"min=3"`
+	DBName               string `env:"NAME" validate:"min=3"`
+	Port                 string `env:"PORT" validate:"min=1"`
+	MaxOpenCons          string `env:"MAX_OPEN_CONNS" validate:"min=1,bound-cons"`
+	MaxIdleCons          string `env:"MAX_IDLE_CONNS" validate:"min=0,bound-idle"`
+	MaxLifetimeMinutes   string `env:"MAX_LIFETIME_MINUTES" validate:"min=1m"`
+	MaxIdleMinutes       string `env:"MAX_IDLE_MINUTES" validate:"min=0m"`
+	Log                  string `env:"LOG" validate:"lte=6"`
+	PreferSimpleProtocol string `env:"PREFER_SIMPLE_PROTOCOL" envDefault:"true"`
+	SSLMode              string `env:"SSL_MODE" envDefault:"disable" validate:"oneof=disable allow default require verify-ca verify-full"`
+	Timezone             string `env:"TZ" envDefault:"UTC" validate:"timezone"`
 }
 
 func (d ConfigDb) DSN() string {
 	return fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s pool_max_conns=%d pool_min_conns=%d "+
-			"prefer_simple_protocol=%t sslmode=%s timezone=%s pool_max_conn_lifetime=%s pool_max_conn_idle_time=%s ",
+		"host=%s port=%s user=%s password=%s dbname=%s", /*+
+		"pool_max_conns=%s pool_min_conns=%s "+
+		"prefer_simple_protocol=%s sslmode=%s timezone=%s pool_max_conn_lifetime=%s pool_max_conn_idle_time=%s "*/
 		d.Host,
 		d.Port,
 		d.User,
 		d.Password,
 		d.DBName,
-		d.MaxOpenCons,
-		d.MaxIdleCons,
-		d.PreferSimpleProtocol,
-		d.SSLMode,
-		d.Timezone,
-		d.MaxLifetimeMinutes,
-		d.MaxIdleMinutes,
+		//d.MaxOpenCons,
+		//d.MaxIdleCons,
+		//d.PreferSimpleProtocol,
+		//d.SSLMode,
+		//d.Timezone,
+		//d.MaxLifetimeMinutes,
+		//d.MaxIdleMinutes,
 	)
 }
 
@@ -65,9 +64,23 @@ func InitEnv(filesDir string) {
 
 func InitConfig() {
 	Cnf = Config{
-		Env:           os.Getenv("ENV"),
-		TelegramToken: os.Getenv("TELEGRAM_TOKEN"),
-		DB:            ConfigDb{},
+		Env:           os.Getenv(`ENV`),
+		TelegramToken: os.Getenv(`TELEGRAM_TOKEN`),
+		DB: ConfigDb{
+			Host:                 os.Getenv(`DB_HOST`),
+			User:                 os.Getenv(`DB_USER`),
+			Password:             os.Getenv(`DB_PASSWORD`),
+			DBName:               os.Getenv(`DB_NAME`),
+			Port:                 os.Getenv(`DB_PORT`),
+			MaxOpenCons:          os.Getenv(`DB_MAX_OPEN_CONNS`),
+			MaxIdleCons:          os.Getenv(`DB_MAX_IDLE_CONNS`),
+			MaxLifetimeMinutes:   os.Getenv(`DB_MAX_LIFETIME_MINUTES`),
+			MaxIdleMinutes:       os.Getenv(`DB_MAX_IDLE_MINUTES`),
+			Log:                  os.Getenv(`DB_LOG`),
+			PreferSimpleProtocol: os.Getenv(`DB_PREFER_SIMPLE_PROTOCOL`),
+			SSLMode:              os.Getenv(`DB_SSL_MODE`),
+			Timezone:             os.Getenv(`DB_TZ`),
+		},
 	}
 }
 
