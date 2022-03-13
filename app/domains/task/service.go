@@ -17,7 +17,7 @@ func (s *Service) CreateTask(ctx context.Context, userId int, x, y float64, text
 	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:  userId,
 		`text`:     text,
-		`location`: core.CreatePoint(x, y),
+		`position`: core.CreatePoint(x, y),
 	})
 
 	return id, err

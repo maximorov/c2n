@@ -8,7 +8,7 @@ import (
 type Task struct {
 	ID        int `table_name:"tasks"`
 	UserID    int
-	Location  core.Point
+	Position  core.Point
 	status    string
 	text      string
 	deadline  time.Time

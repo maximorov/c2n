@@ -1,4 +1,4 @@
-package user
+package executor
 
 import (
 	"context"
@@ -12,7 +12,7 @@ type Repository struct {
 }
 
 func NewSchema() *core.TableSchema {
-	return core.NewTableSchema(&User{})
+	return core.NewTableSchema(&UserExecutor{})
 }
 
 func NewRepo(c core.Conn) *Repository {

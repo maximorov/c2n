@@ -1,4 +1,4 @@
-package user
+package soc_net
 
 import (
 	"context"
@@ -12,7 +12,7 @@ type Repository struct {
 }
 
 func NewSchema() *core.TableSchema {
-	return core.NewTableSchema(&User{})
+	return core.NewTableSchema(&UserSocNet{})
 }
 
 func NewRepo(c core.Conn) *Repository {
