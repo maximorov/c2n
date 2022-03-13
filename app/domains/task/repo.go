@@ -33,13 +33,13 @@ func (s *Repository) UpdateOne(ctx context.Context, entity map[string]interface{
 	return core.UpdateOne(ctx, s.ConnPool, s.Schema().TableName(), entity, cond)
 }
 
-// Deprecated: Use FindOne or FindMany.
 func (s *Repository) FindOne(
 	ctx context.Context,
 	fields []string,
 	cond map[string]interface{},
 ) (*Task, error) {
 	res := &Task{}
+	res.Position = db.CreatePoint(0, 0)
 	err := core.FindOne(ctx, s.ConnPool, s.Schema().TableName(), res, fields, cond)
 
 	return res, err
@@ -51,7 +51,7 @@ func (s *Repository) FindMany(
 	cond map[string]interface{},
 ) ([]*Task, error) {
 	var res []*Task
-	err := core.FindMany(ctx, s.ConnPool, s.Schema().TableName(), res, fields, cond)
+	err := core.FindMany(ctx, s.ConnPool, s.Schema().TableName(), &res, fields, cond)
 	if err != nil {
 		return nil, err
 	}

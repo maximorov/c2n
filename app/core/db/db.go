@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"database/sql/driver"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -15,6 +17,9 @@ type Point interface {
 	pgtype.BinaryDecoder
 	pgtype.TextDecoder
 	pgtype.BinaryEncoder
+	pgtype.TextEncoder
+	sql.Scanner
+	driver.Valuer
 }
 
 func CreatePoint(x, y float64) Point {
