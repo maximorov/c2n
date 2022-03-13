@@ -6,7 +6,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"helpers/app/core"
-	"helpers/app/domain/task"
+	"helpers/app/domains/task"
 	"log"
 )
 
