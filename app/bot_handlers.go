@@ -21,11 +21,11 @@ func botHandlers(
 	u tgbotapi.UpdateConfig,
 	connPool db.Conn,
 ) {
-	handler := bot.Handler{activity.NewService(connPool)}
+	handler := bot.Handler{botApi, activity.NewService(connPool)}
 	updates := botApi.GetUpdatesChan(u)
 	for update := range updates {
 		if update.Message == nil {
-			if handler.Handle(update.CallbackData()) {
+			if handler.Handle(update) {
 				continue
 			}
 			continue
