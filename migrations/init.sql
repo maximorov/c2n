@@ -1,3 +1,20 @@
+create function set_updated_column() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    NEW.updated = now();
+RETURN NEW;
+END;
+$$;
+create trigger updated
+    before update
+    on tasks
+    for each row
+    execute procedure set_updated_column();
+create type enum_task_activity_status as enum ('taken', 'completed', 'expired', 'refused');
+create type enum_task_status as enum ('raw', 'new', 'in_progress', 'done', 'expired', 'cancelled', 'refused');
+
 create table if not exists tasks
 (
     id       bigserial
