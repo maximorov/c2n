@@ -2,6 +2,9 @@ package task
 
 import (
 	"context"
+	"github.com/jackc/pgx/v4"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"helpers/app/core/db"
 )
 
@@ -21,4 +24,32 @@ func (s *Service) CreateTask(ctx context.Context, userId int, x, y float64, text
 	})
 
 	return id, err
+}
+
+func (s *Service) GetUsersRawTask(ctx context.Context, userId int) (*Task, error) {
+	task, err := s.repo.FindOne(ctx, []string{
+		`id`,
+	}, map[string]interface{}{
+		`user_id`: userId,
+		`status`:  `raw`,
+	})
+
+	return task, err
+}
+
+func (s *Service) IsUserHaveUndoneTasks(ctx context.Context, userId int) bool {
+	_, err := s.repo.FindOne(ctx, []string{
+		`id`,
+	}, map[string]interface{}{
+		`user_id`: userId,
+		`status`:  []string{`new`, `in_progress`},
+	})
+	if err != nil {
+		if !errors.As(err, &pgx.ErrNoRows) {
+			zap.S().Error(err)
+		}
+		return false
+	}
+
+	return true
 }

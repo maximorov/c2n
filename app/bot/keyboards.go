@@ -1,15 +1,14 @@
-package main
+package bot
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"helpers/app/bot"
 )
 
 var (
 	HeadKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandHelp),
-			tgbotapi.NewKeyboardButton(bot.CommandNeedHelp),
+			tgbotapi.NewKeyboardButton(CommandNeedHelp),
 		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandInformation),
@@ -50,6 +49,13 @@ var (
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandToMain),
 		),
+	)
+	NeedHelpHaveTasksKeyboard = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(`My tasks`),
+			tgbotapi.NewKeyboardButton(`Create new task`),
+		),
+		tgbotapi.NewKeyboardButtonRow(),
 	)
 	GetLocationKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(

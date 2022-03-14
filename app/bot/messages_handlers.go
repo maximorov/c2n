@@ -1,8 +1,8 @@
 package bot
 
 import (
+	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"go.uber.org/zap"
 	"helpers/app/domains/task"
 )
 
@@ -15,7 +15,7 @@ func NewMessageHandler(BotApi *tgbotapi.BotAPI,
 }
 
 type Handler interface {
-	Handle(*tgbotapi.Update)
+	Handle(context.Context, *tgbotapi.Update)
 }
 
 type MessageHandler struct {
@@ -30,33 +30,11 @@ func (s *MessageHandler) Init() {
 	}
 }
 
-func (s *MessageHandler) Handle(u *tgbotapi.Update) bool {
+func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	if h, ok := s.handlers[u.Message.Text]; ok {
-		h.Handle(u)
+		h.Handle(ctx, u)
 		return true
 	}
 
 	return false
-}
-
-const CommandNeedHelp = "Попросити допомогу"
-
-type NeedHelpHandler struct {
-	handler *MessageHandler
-}
-
-func (s *NeedHelpHandler) Msg() string {
-	return CommandNeedHelp
-}
-
-func (s *NeedHelpHandler) Handle(u *tgbotapi.Update) {
-	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	msg.ReplyToMessageID = u.Message.MessageID
-	//msg.ReplyMarkup = NeedHelpKeyboard
-	//msg.Text =
-
-	_, err := s.handler.BotApi.Send(msg)
-	if err != nil {
-		zap.S().Error(err)
-	}
 }

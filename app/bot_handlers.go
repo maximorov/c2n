@@ -15,7 +15,6 @@ import (
 	"helpers/app/domains/user"
 	"helpers/app/domains/user/soc_net"
 	"helpers/app/usecase"
-	"log"
 	"strconv"
 	"time"
 )
@@ -26,18 +25,22 @@ func botHandlers(
 	u tgbotapi.UpdateConfig,
 	connPool db.Conn,
 ) {
+	taskServie := task.NewService(connPool)
+
 	handler := bot.CallbackHandler{botApi, activity.NewService(connPool)}
-	msgHandler := bot.NewMessageHandler(botApi, task.NewService(connPool))
+	msgHandler := bot.NewMessageHandler(botApi, taskServie)
 	updates := botApi.GetUpdatesChan(u)
 	for update := range updates {
 		func() {
 			ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 			defer cancel()
 
-			userID, err := authenticateUser(ctx, update, connPool)
+			usr, err := authenticateUser(ctx, update, connPool)
 			if err != nil {
 				zap.S().Error(err)
 			}
+
+			ctx = context.WithValue(ctx, `user`, usr)
 
 			if update.Message == nil {
 				if handler.Handle(update) {
@@ -46,11 +49,11 @@ func botHandlers(
 				return
 			}
 
-			if msgHandler.Handle(&update) {
+			if msgHandler.Handle(ctx, &update) {
 				return
 			}
 
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+			//log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 			msg.ReplyToMessageID = update.Message.MessageID
@@ -58,8 +61,8 @@ func botHandlers(
 			// Old (default) handlers
 			switch update.Message.Text {
 			case "/start":
-				msg.ReplyMarkup = HeadKeyboard
-			case CommandHelp:
+				msg.ReplyMarkup = bot.HeadKeyboard
+			case bot.CommandHelp:
 				s := usecase.NewTaskUseCase(connPool)
 				tasks, err := s.GetTasksForUser(ctx, 1)
 				if err != nil {
@@ -74,9 +77,9 @@ func botHandlers(
 				} else {
 					for _, t := range tasks {
 						tId := strconv.Itoa(t.ID)
-						TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
-						TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
-						msg.ReplyMarkup = TasksListKeyboard
+						bot.TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
+						bot.TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
+						msg.ReplyMarkup = bot.TasksListKeyboard
 						msg.Text = "Task " + tId + "\n" + t.Text
 						_, err := botApi.Send(msg)
 						if err != nil {
@@ -85,33 +88,33 @@ func botHandlers(
 					}
 				}
 				return
-			case CommandInformation:
-				msg.Text = Information
-			case CommandRadius1:
-				msg.ReplyMarkup = GetLocationKeyboard
+			case bot.CommandInformation:
+				msg.Text = bot.Information
+			case bot.CommandRadius1:
+				msg.ReplyMarkup = bot.GetLocationKeyboard
 				//msg.Text =
-			case CommandRadius3:
-				msg.ReplyMarkup = GetLocationKeyboard
+			case bot.CommandRadius3:
+				msg.ReplyMarkup = bot.GetLocationKeyboard
 				//msg.Text =
-			case CommandRadius5:
-				msg.ReplyMarkup = GetLocationKeyboard
+			case bot.CommandRadius5:
+				msg.ReplyMarkup = bot.GetLocationKeyboard
 				//msg.Text =
-			case CommandAllCity:
+			case bot.CommandAllCity:
 				//msg.ReplyMarkup =
 				//msg.Text =
-			case CommandChooseCity:
+			case bot.CommandChooseCity:
 			//msg.ReplyMarkup =
 			//msg.Text =
-			case CommandTakeLocationManual:
+			case bot.CommandTakeLocationManual:
 			//msg.ReplyMarkup =
 			//msg.Text =
-			case CommandContinueHelp:
+			case bot.CommandContinueHelp:
 				//msg.ReplyMarkup =
 				//msg.Text =
-			case CommandToMain:
-				msg.ReplyMarkup = HeadKeyboard
-			case CommandNewTask:
-				msg.ReplyMarkup = GetContactsKeyboard
+			case bot.CommandToMain:
+				msg.ReplyMarkup = bot.HeadKeyboard
+			case bot.CommandNewTask:
+				msg.ReplyMarkup = bot.GetContactsKeyboard
 				msg.Text = "Поділіться будь-ласка контактами, щоб з вами могли звʼязатись"
 				//TODO: нормально пофиксить эту багу..
 			//case CommandGetContact:
@@ -119,10 +122,10 @@ func botHandlers(
 			//	msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
 			//case CommandGetLocation:
 			//	//msg.ReplyMarkup =
-			case CommandProcessHelp:
+			case bot.CommandProcessHelp:
 				//msg.ReplyMarkup =
 				//msg.Text =
-			case CommandCreateTask:
+			case bot.CommandCreateTask:
 				s := task.NewService(connPool)
 				uId := 1
 				x, y := 1.0, 1.0
@@ -132,22 +135,47 @@ func botHandlers(
 				}
 				//msg.ReplyMarkup =
 				msg.Text = strconv.Itoa(taskId)
-			default:
-
+			default: // any text determines like text of task
+				tsk, err := taskServie.GetUsersRawTask(ctx, usr.ID)
+				if err != nil {
+					msg.Text += "Your RAW task didnt found. Start from the beginning"
+					_, err = botApi.Send(msg)
+					if err != nil {
+						zap.S().Error(err)
+					}
+					return
+				}
+				s := usecase.NewTaskUseCase(connPool)
+				err = s.UpdateLastRawWithText(ctx, tsk.ID, update.Message.Text)
+				if err != nil {
+					zap.S().Error(err)
+				}
+				msg.Text = "Your task #" + strconv.Itoa(tsk.ID) + "\n" +
+					" свами должны связаться в течении " + strconv.Itoa(task.TaskDeadline) + " часов"
 			}
 
 			if update.Message.Contact != nil {
-				phone, err := getContactsFotUser(ctx, update, userID, connPool)
+				phone, err := getContactsFotUser(ctx, update, usr.ID, connPool)
 				if err != nil {
 					zap.S().Error(err)
 				}
 				fmt.Printf("PHONE : %d", phone)
-				msg.ReplyMarkup = GetLocationKeyboard
+				msg.ReplyMarkup = bot.GetLocationKeyboard
 				msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
 			}
 			if update.Message.Location != nil {
-				msg.ReplyMarkup = GetLocationKeyboard
-				msg.Text = "Ви поділилися локацією..." + fmt.Sprintf("\nШирота: %v\nДовгота:%v", update.Message.Location.Longitude, update.Message.Location.Latitude)
+				msg.Text = ""
+				//msg.Text = "Ви поділилися локацією..." + fmt.Sprintf("\nШирота: %v\nДовгота:%v", update.Message.Location.Longitude, update.Message.Location.Latitude)
+				switch update.Message.ReplyToMessage.Text {
+				case `We need to collect info about you`:
+					s := usecase.NewTaskUseCase(connPool)
+					err := s.CreateRawTask(ctx, usr.ID, update.Message.Location.Longitude, update.Message.Location.Latitude)
+					if err != nil {
+						zap.S().Error(err)
+					}
+					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+					msg.Text += "\nWrite your problem"
+				}
 			}
 
 			_, err = botApi.Send(msg)
@@ -158,33 +186,41 @@ func botHandlers(
 	}
 }
 
-func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn) (int, error) {
+func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn) (*user.User, error) {
 	userSocNet := soc_net.UserSocNet{
 		UserSocNetID: fmt.Sprintf("%d", update.Message.From.ID),
 	}
 
+	var userId int
+
 	s := soc_net.NewService(connPool)
+	su := user.NewService(connPool)
 
 	us, err := s.GetOneBySocNetID(ctx, userSocNet.UserSocNetID)
 	if err != nil {
 		if errors.As(err, &pgx.ErrNoRows) {
-			su := user.NewService(connPool)
 			userID, err := su.CreateOne(ctx, update.Message.From.UserName, 0)
 			if err != nil {
-				zap.S().Error(err)
+				return nil, err
 			}
 
-			_, err = s.CreateOne(ctx, userID, userSocNet.UserSocNetID)
+			userId, err = s.CreateOne(ctx, userID, userSocNet.UserSocNetID)
 			if err != nil {
-				zap.S().Error(err)
+				return nil, err
 			}
-			return us.ID, nil
 		}
 
-		zap.S().Error(err)
+		return nil, err
+	} else {
+		userId = us.UserId
 	}
 
-	return us.ID, err
+	u, err := su.GetOneByID(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
 
 func getContactsFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
