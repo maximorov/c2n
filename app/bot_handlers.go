@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 	"helpers/app/bot"
-	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
@@ -63,30 +62,32 @@ func botHandlers(
 			case "/start":
 				msg.ReplyMarkup = bot.HeadKeyboard
 			case bot.CommandHelp:
-				s := usecase.NewTaskUseCase(connPool)
-				tasks, err := s.GetTasksForUser(ctx, 1)
-				if err != nil {
-					zap.S().Error(err)
-				}
-				if len(tasks) == 0 {
-					msg.Text = "No tasks?"
-					_, err := botApi.Send(msg)
-					if err != nil {
-						zap.S().Error(err)
-					}
-				} else {
-					for _, t := range tasks {
-						tId := strconv.Itoa(t.ID)
-						bot.TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
-						bot.TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
-						msg.ReplyMarkup = bot.TasksListKeyboard
-						msg.Text = "Task " + tId + "\n" + t.Text
-						_, err := botApi.Send(msg)
-						if err != nil {
-							zap.S().Error(err)
-						}
-					}
-				}
+				//er := executor.NewRepo(connPool)
+				//s := usecase.NewTaskUseCase(connPool)
+				//executor, err := er.FindOne(ctx, []string{`position`}, map[string]interface{}{`user_id`: usr.ID})
+				//tasks, err := s.GetTasksForUser(ctx, executor.Position)
+				//if err != nil {
+				//	zap.S().Error(err)
+				//}
+				//if len(tasks) == 0 {
+				//	msg.Text = "No tasks?"
+				//	_, err := botApi.Send(msg)
+				//	if err != nil {
+				//		zap.S().Error(err)
+				//	}
+				//} else {
+				//	for _, t := range tasks {
+				//		tId := strconv.Itoa(t.ID)
+				//		bot.TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
+				//		bot.TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
+				//		msg.ReplyMarkup = bot.TasksListKeyboard
+				//		msg.Text = "Task " + tId + "\n" + t.Text
+				//		_, err := botApi.Send(msg)
+				//		if err != nil {
+				//			zap.S().Error(err)
+				//		}
+				//	}
+				//}
 				return
 			case bot.CommandInformation:
 				msg.Text = bot.Information
