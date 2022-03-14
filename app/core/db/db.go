@@ -2,8 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
-	"database/sql/driver"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -12,18 +10,8 @@ import (
 	"helpers/app/bootstrap"
 )
 
-type Point interface {
-	pgtype.Value
-	pgtype.BinaryDecoder
-	pgtype.TextDecoder
-	pgtype.BinaryEncoder
-	pgtype.TextEncoder
-	sql.Scanner
-	driver.Valuer
-}
-
-func CreatePoint(x, y float64) Point {
-	point := &pgtype.Point{P: pgtype.Vec2{x, y}, Status: pgtype.Present}
+func CreatePoint(x, y float64) pgtype.Point {
+	point := pgtype.Point{P: pgtype.Vec2{x, y}, Status: pgtype.Present}
 
 	return point
 }

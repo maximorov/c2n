@@ -28,7 +28,7 @@ func botHandlers(
 	taskServie := task.NewService(connPool)
 
 	handler := bot.CallbackHandler{botApi, activity.NewService(connPool)}
-	msgHandler := bot.NewMessageHandler(botApi, taskServie)
+	msgHandler := bot.NewMessageHandler(botApi, taskServie, executor.NewRepo(connPool))
 	updates := botApi.GetUpdatesChan(u)
 	for update := range updates {
 		func() {

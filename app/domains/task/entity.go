@@ -1,6 +1,7 @@
 package task
 
 import (
+	"github.com/jackc/pgx/pgtype"
 	"time"
 )
 
@@ -9,7 +10,7 @@ const TaskDeadline = 24 // days
 type Task struct {
 	ID        int `table_name:"tasks"`
 	UserID    int
-	Position  interface{}
+	Position  pgtype.Point
 	Status    string
 	Text      string
 	Deadline  time.Time
