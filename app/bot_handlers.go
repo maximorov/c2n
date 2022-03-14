@@ -64,7 +64,7 @@ func botHandlers(
 				msg.ReplyMarkup = bot.HeadKeyboard
 			case bot.CommandHelp:
 				s := usecase.NewTaskUseCase(connPool)
-				tasks, err := s.GetTasksForUser(ctx, 1)
+				tasks, err := s.GetTasksForUser(ctx, usr.ID)
 				if err != nil {
 					zap.S().Error(err)
 				}
@@ -187,6 +187,10 @@ func botHandlers(
 }
 
 func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn) (*user.User, error) {
+	if update.Message == nil {
+		return nil, nil
+	}
+
 	userSocNet := soc_net.UserSocNet{
 		UserSocNetID: fmt.Sprintf("%d", update.Message.From.ID),
 	}
@@ -199,7 +203,7 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 	us, err := s.GetOneBySocNetID(ctx, userSocNet.UserSocNetID)
 	if err != nil {
 		if errors.As(err, &pgx.ErrNoRows) {
-			userID, err := su.CreateOne(ctx, update.Message.From.UserName, 0)
+			userID, err := su.CreateOne(ctx, update.Message.From.UserName, "")
 			if err != nil {
 				return nil, err
 			}
@@ -224,6 +228,24 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 }
 
 func getContactsFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
+
+	su := user.NewService(connPool)
+	userID, err := su.UpdateOne(ctx,
+		map[string]interface{}{
+			`phone_number`: update.Message.Contact.PhoneNumber,
+		}, map[string]interface{}{
+			`id`: userID,
+		})
+	if err != nil {
+		zap.S().Error(err)
+
+		return "", err
+	}
+
+	return update.Message.Contact.PhoneNumber, nil
+}
+
+func getLocationFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
 
 	su := user.NewService(connPool)
 	userID, err := su.UpdateOne(ctx,

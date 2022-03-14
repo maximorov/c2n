@@ -13,7 +13,7 @@ type Service struct {
 	repo *Repository
 }
 
-func (s *Service) CreateOne(ctx context.Context, name string, phoneNumber int) (int, error) {
+func (s *Service) CreateOne(ctx context.Context, name string, phoneNumber string) (int, error) {
 	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
 		`name`:         name,
 		`phone_number`: phoneNumber,
