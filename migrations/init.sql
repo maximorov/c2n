@@ -39,7 +39,7 @@ create table if not exists users
     id           bigserial
         constraint users_pk
             primary key,
-    phone_number bigint                              not null,
+    phone_number varchar(31)                         not null,
     name         varchar(127)                        not null,
     created      timestamp default CURRENT_TIMESTAMP not null,
     updated      timestamp,

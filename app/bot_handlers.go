@@ -12,6 +12,7 @@ import (
 	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
 	"helpers/app/domains/user"
+	"helpers/app/domains/user/executor"
 	"helpers/app/domains/user/soc_net"
 	"helpers/app/usecase"
 	"strconv"
@@ -27,7 +28,7 @@ func botHandlers(
 	taskServie := task.NewService(connPool)
 
 	handler := bot.CallbackHandler{botApi, activity.NewService(connPool)}
-	msgHandler := bot.NewMessageHandler(botApi, taskServie)
+	msgHandler := bot.NewMessageHandler(botApi, taskServie, executor.NewRepo(connPool))
 	updates := botApi.GetUpdatesChan(u)
 	for update := range updates {
 		func() {
