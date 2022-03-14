@@ -82,10 +82,9 @@ execute procedure set_updated_column();
 
 create table if not exists users_executors
 (
-    user_id  bigint             not null,
-    position point              not null,
-    area     smallint default 1 not null,
-    city     varchar(31)        not null
+    user_id bigint      not null,
+    area    circle      not null,
+    city    varchar(31) not null
 );
 
 create table if not exists tasks_appeales

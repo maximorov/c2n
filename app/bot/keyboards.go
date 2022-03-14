@@ -55,7 +55,6 @@ var (
 			tgbotapi.NewKeyboardButton(`My tasks`),
 			tgbotapi.NewKeyboardButton(`Create new task`),
 		),
-		tgbotapi.NewKeyboardButtonRow(),
 	)
 	GetLocationKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(

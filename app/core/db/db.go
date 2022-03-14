@@ -28,6 +28,22 @@ func CreatePoint(x, y float64) Point {
 	return point
 }
 
+type Circle interface {
+	pgtype.Value
+	pgtype.BinaryDecoder
+	pgtype.TextDecoder
+	pgtype.BinaryEncoder
+	pgtype.TextEncoder
+	sql.Scanner
+	driver.Valuer
+}
+
+func CreateCircle(x, y, r float64) Circle {
+	point := &pgtype.Circle{P: pgtype.Vec2{x, y}, R: r, Status: pgtype.Present}
+
+	return point
+}
+
 type Conn interface {
 	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
 	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)

@@ -14,7 +14,7 @@ type TaskUseCase struct {
 	taskRepo *task.Repository
 }
 
-func (s *TaskUseCase) GetTasksForUser(ctx context.Context, userId int) ([]*task.Task, error) {
+func (s *TaskUseCase) GetTasksForUser(ctx context.Context, circle interface{}) ([]*task.Task, error) {
 	res, err := s.taskRepo.FindMany(ctx, []string{
 		`id`,
 		`user_id`,
