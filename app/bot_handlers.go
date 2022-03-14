@@ -130,7 +130,7 @@ func botHandlers(
 				msg.Text = strconv.Itoa(taskId)
 			default: // any text determines like text of task
 				if update.Message.Contact != nil {
-					phone, err := getContactsFotUser(ctx, update, usr.ID, connPool)
+					phone, err := setContactsFotUser(ctx, update, usr.ID, connPool)
 					if err != nil {
 						zap.S().Error(err)
 					}
@@ -224,7 +224,7 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 	return u, nil
 }
 
-func getContactsFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
+func setContactsFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
 
 	su := user.NewService(connPool)
 	userID, err := su.UpdateOne(ctx,
@@ -289,7 +289,7 @@ func setLocationFotUser(ctx context.Context, update tgbotapi.Update, userID int,
 		zap.S().Error(err)
 		return err
 	}
-	point := db.CreatePoint(update.Message.Location.Longitude, update.Message.Location.Latitude)
+	point := db.CreatePoint(update.Message.Location.Latitude, update.Message.Location.Longitude)
 
 	_, err = s.UpdateOne(ctx,
 		map[string]interface{}{
