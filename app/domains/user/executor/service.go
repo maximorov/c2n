@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"github.com/jackc/pgx/pgtype"
 	"helpers/app/core/db"
 )
 
@@ -13,7 +14,7 @@ type Service struct {
 	repo *Repository
 }
 
-func (s *Service) CreateOne(ctx context.Context, userId, area int, city string, pos db.Point) (int, error) {
+func (s *Service) CreateOne(ctx context.Context, userId, area int, city string, pos pgtype.Point) (int, error) {
 	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:  userId,
 		`area`:     area,
