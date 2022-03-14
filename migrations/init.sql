@@ -39,7 +39,7 @@ create table if not exists users
     id           bigserial
         constraint users_pk
             primary key,
-    phone_number bigint                              not null,
+    phone_number varchar(127)                              not null,
     name         varchar(127)                        not null,
     created      timestamp default CURRENT_TIMESTAMP not null,
     updated      timestamp,
@@ -82,6 +82,9 @@ execute procedure set_updated_column();
 
 create table if not exists users_executors
 (
+    id           bigserial
+            constraint users_executors_pk
+                primary key,
     user_id  bigint             not null,
     position point              not null,
     area     smallint default 1 not null,

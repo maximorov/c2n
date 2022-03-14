@@ -5,7 +5,8 @@ import (
 )
 
 type UserExecutor struct {
-	UserId   int64    `json:"user_id" table_name:"users_executors"`
+	ID       int      `json:"id" table_name:"users_executors"`
+	UserId   int64    `json:"user_id"`
 	Position db.Point `json:"position"`
 	Area     int      `json:"area"`
 	City     string   `json:"city"`

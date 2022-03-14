@@ -12,6 +12,7 @@ import (
 	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
 	"helpers/app/domains/user"
+	"helpers/app/domains/user/executor"
 	"helpers/app/domains/user/soc_net"
 	"helpers/app/usecase"
 	"strconv"
@@ -71,39 +72,26 @@ func botHandlers(
 			case bot.CommandInformation:
 				msg.Text = bot.Information
 			case bot.CommandRadius1:
+				err = setAreaForUser(ctx, update, usr.ID, 1000, connPool)
+				if err != nil {
+					zap.S().Error(err)
+				}
 				msg.ReplyMarkup = bot.GetLocationKeyboard
-				//msg.Text =
+				msg.Text = "Поділіться будь-ласка своєю локацією"
 			case bot.CommandRadius3:
-				//er := executor.NewRepo(connPool)
-				//s := usecase.NewTaskUseCase(connPool)
-				//executor, err := er.FindOne(ctx, []string{`position`}, map[string]interface{}{`user_id`: usr.ID})
-				//tasks, err := s.GetTasksForUser(ctx, executor.Position)
-				//if err != nil {
-				//	zap.S().Error(err)
-				//}
-				//if len(tasks) == 0 {
-				//	msg.Text = "No tasks?"
-				//	_, err := botApi.Send(msg)
-				//	if err != nil {
-				//		zap.S().Error(err)
-				//	}
-				//} else {
-				//	for _, t := range tasks {
-				//		tId := strconv.Itoa(t.ID)
-				//		bot.TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
-				//		bot.TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
-				//		msg.ReplyMarkup = bot.TasksListKeyboard
-				//		msg.Text = "Task " + tId + "\n" + t.Text
-				//		_, err := botApi.Send(msg)
-				//		if err != nil {
-				//			zap.S().Error(err)
-				//		}
-				//	}
-				//}
-				//return
-			case bot.CommandRadius5:
+				err = setAreaForUser(ctx, update, usr.ID, 3000, connPool)
+				if err != nil {
+					zap.S().Error(err)
+				}
 				msg.ReplyMarkup = bot.GetLocationKeyboard
-				//msg.Text =
+				msg.Text = "Поділіться будь-ласка своєю локацією"
+			case bot.CommandRadius5:
+				err = setAreaForUser(ctx, update, usr.ID, 5000, connPool)
+				if err != nil {
+					zap.S().Error(err)
+				}
+				msg.ReplyMarkup = bot.GetLocationKeyboard
+				msg.Text = "Поділіться будь-ласка своєю локацією"
 			case bot.CommandAllCity:
 				//msg.ReplyMarkup =
 				//msg.Text =
@@ -141,6 +129,34 @@ func botHandlers(
 				//msg.ReplyMarkup =
 				msg.Text = strconv.Itoa(taskId)
 			default: // any text determines like text of task
+				if update.Message.Contact != nil {
+					phone, err := getContactsFotUser(ctx, update, usr.ID, connPool)
+					if err != nil {
+						zap.S().Error(err)
+					}
+					fmt.Printf("PHONE : %d", phone)
+					msg.ReplyMarkup = bot.GetLocationKeyboard
+					msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
+				}
+				if update.Message.Location != nil {
+					msg.Text = ""
+					switch update.Message.ReplyToMessage.Text {
+					case `We need to collect info about you`:
+						s := usecase.NewTaskUseCase(connPool)
+						err := s.CreateRawTask(ctx, usr.ID, update.Message.Location.Longitude, update.Message.Location.Latitude)
+						if err != nil {
+							zap.S().Error(err)
+						}
+						msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+						msg.Text += "\nWrite your problem"
+					case `Поділіться будь-ласка своєю локацією`:
+						err = setLocationFotUser(ctx, update, usr.ID, connPool)
+						if err != nil {
+							zap.S().Error(err)
+						}
+					}
+				}
+
 				tsk, err := taskServie.GetUsersRawTask(ctx, usr.ID)
 				if err != nil {
 					msg.Text += "Your RAW task didnt found. Start from the beginning"
@@ -157,39 +173,6 @@ func botHandlers(
 				}
 				msg.Text = "Your task #" + strconv.Itoa(tsk.ID) + "\n" +
 					" свами должны связаться в течении " + strconv.Itoa(task.TaskDeadline) + " часов"
-			}
-
-			if update.Message.Contact != nil {
-				phone, err := getContactsFotUser(ctx, update, usr.ID, connPool)
-				if err != nil {
-					zap.S().Error(err)
-				}
-				fmt.Printf("PHONE : %d", phone)
-				msg.ReplyMarkup = bot.GetLocationKeyboard
-				msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
-			}
-			if update.Message.Location != nil {
-				msg.Text = ""
-				//msg.Text = "Ви поділилися локацією..." + fmt.Sprintf("\nШирота: %v\nДовгота:%v", update.Message.Location.Longitude, update.Message.Location.Latitude)
-				switch update.Message.ReplyToMessage.Text {
-				case `We need to collect info about you`:
-					s := usecase.NewTaskUseCase(connPool)
-					err := s.CreateRawTask(ctx, usr.ID, update.Message.Location.Longitude, update.Message.Location.Latitude)
-					if err != nil {
-						zap.S().Error(err)
-					}
-					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-					msg.Text += "\nWrite your problem"
-				case `Your location saved`:
-					s := usecase.NewTaskUseCase(connPool)
-					err := s.CreateRawTask(ctx, usr.ID, update.Message.Location.Longitude, update.Message.Location.Latitude)
-					if err != nil {
-						zap.S().Error(err)
-					}
-					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-					msg.Text += "\nWrite your problem"
-				}
-
 			}
 
 			_, err = botApi.Send(msg)
@@ -260,24 +243,65 @@ func getContactsFotUser(ctx context.Context, update tgbotapi.Update, userID int,
 }
 
 func registerExecutor(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (int, error) {
+	su := executor.NewService(connPool)
+	ex, err := su.GetOneByUserID(ctx, userID)
+	if err != nil {
+		if errors.As(err, &pgx.ErrNoRows) {
+			pos := db.CreatePoint(0, 0)
+			userExecutorID, err := su.CreateOne(ctx, userID, 0, "", pos)
+			if err != nil {
+				zap.S().Error(err)
+			}
 
-	return 0, nil
+			return userExecutorID, nil
+		}
+	}
+
+	return ex.ID, err
 }
 
-func getLocationFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
-
-	su := user.NewService(connPool)
-	userID, err := su.UpdateOne(ctx,
+func setAreaForUser(ctx context.Context, update tgbotapi.Update, userID, area int, connPool db.Conn) error {
+	s := executor.NewService(connPool)
+	ex, err := s.GetOneByUserID(ctx, userID)
+	if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+	_, err = s.UpdateOne(ctx,
 		map[string]interface{}{
-			`phone_number`: update.Message.Contact.PhoneNumber,
+			`area`: area,
 		}, map[string]interface{}{
-			`id`: userID,
+			`id`: ex.ID,
 		})
 	if err != nil {
 		zap.S().Error(err)
 
-		return "", err
+		return err
 	}
 
-	return update.Message.Contact.PhoneNumber, nil
+	return nil
+}
+
+func setLocationFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) error {
+	s := executor.NewService(connPool)
+	ex, err := s.GetOneByUserID(ctx, userID)
+	if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+	point := db.CreatePoint(update.Message.Location.Longitude, update.Message.Location.Latitude)
+
+	_, err = s.UpdateOne(ctx,
+		map[string]interface{}{
+			`position`: point,
+		}, map[string]interface{}{
+			`id`: ex.ID,
+		})
+	if err != nil {
+		zap.S().Error(err)
+
+		return err
+	}
+
+	return nil
 }
