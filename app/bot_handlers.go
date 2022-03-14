@@ -40,7 +40,7 @@ func botHandlers(
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 		msg.ReplyToMessageID = update.Message.MessageID
 
-		_, err := authenticateUser(ctx, update, connPool)
+		userID, err := authenticateUser(ctx, update, connPool)
 		if err != nil {
 			zap.S().Error(err)
 		}
@@ -110,8 +110,8 @@ func botHandlers(
 		//case CommandGetContact:
 		//	msg.ReplyMarkup = GetLocationKeyboard
 		//	msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
-		case CommandGetLocation:
-			//msg.ReplyMarkup =
+		//case CommandGetLocation:
+		//	//msg.ReplyMarkup =
 		case CommandProcessHelp:
 			//msg.ReplyMarkup =
 			//msg.Text =
@@ -130,6 +130,11 @@ func botHandlers(
 		}
 
 		if update.Message.Contact != nil {
+			phone, err := getContactsFotUser(ctx, update, userID, connPool)
+			if err != nil {
+				zap.S().Error(err)
+			}
+			fmt.Printf("PHONE : %d", phone)
 			msg.ReplyMarkup = GetLocationKeyboard
 			msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
 		}
@@ -172,4 +177,22 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 	}
 
 	return us.ID, err
+}
+
+func getContactsFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
+
+	su := user.NewService(connPool)
+	userID, err := su.UpdateOne(ctx,
+		map[string]interface{}{
+			`phone_number`: update.Message.Contact.PhoneNumber,
+		}, map[string]interface{}{
+			`id`: userID,
+		})
+	if err != nil {
+		zap.S().Error(err)
+
+		return "", err
+	}
+
+	return update.Message.Contact.PhoneNumber, nil
 }

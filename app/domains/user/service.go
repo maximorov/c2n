@@ -22,6 +22,10 @@ func (s *Service) CreateOne(ctx context.Context, name string, phoneNumber int) (
 	return id, err
 }
 
+func (s *Service) UpdateOne(ctx context.Context, entity map[string]interface{}, cond map[string]interface{}) (int, error) {
+	return s.repo.UpdateOne(ctx, entity, cond)
+}
+
 func (s *Service) GetOneByID(ctx context.Context, userId int) (*User, error) {
 	user, err := s.repo.FindOne(ctx, []string{`id`, `phone_number`}, map[string]interface{}{
 		`id`: userId,
