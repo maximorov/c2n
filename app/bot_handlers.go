@@ -62,7 +62,12 @@ func botHandlers(
 			case "/start":
 				msg.ReplyMarkup = bot.HeadKeyboard
 			case bot.CommandHelp:
-
+				msg.ReplyMarkup = bot.HelpKeyboard
+				_, err = registerExecutor(ctx, update, usr.ID, connPool)
+				if err != nil {
+					zap.S().Error(err)
+				}
+				msg.Text = "Оберіть територію де ви зможете допомогти"
 			case bot.CommandInformation:
 				msg.Text = bot.Information
 			case bot.CommandRadius1:
@@ -175,7 +180,16 @@ func botHandlers(
 					}
 					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 					msg.Text += "\nWrite your problem"
+				case `Your location saved`:
+					s := usecase.NewTaskUseCase(connPool)
+					err := s.CreateRawTask(ctx, usr.ID, update.Message.Location.Longitude, update.Message.Location.Latitude)
+					if err != nil {
+						zap.S().Error(err)
+					}
+					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+					msg.Text += "\nWrite your problem"
 				}
+
 			}
 
 			_, err = botApi.Send(msg)
@@ -187,6 +201,10 @@ func botHandlers(
 }
 
 func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn) (*user.User, error) {
+	if update.Message == nil {
+		return nil, nil
+	}
+
 	userSocNet := soc_net.UserSocNet{
 		UserSocNetID: fmt.Sprintf("%d", update.Message.From.ID),
 	}
@@ -199,7 +217,7 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 	us, err := s.GetOneBySocNetID(ctx, userSocNet.UserSocNetID)
 	if err != nil {
 		if errors.As(err, &pgx.ErrNoRows) {
-			userID, err := su.CreateOne(ctx, update.Message.From.UserName, 0)
+			userID, err := su.CreateOne(ctx, update.Message.From.UserName, "")
 			if err != nil {
 				return nil, err
 			}
@@ -224,6 +242,29 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 }
 
 func getContactsFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
+
+	su := user.NewService(connPool)
+	userID, err := su.UpdateOne(ctx,
+		map[string]interface{}{
+			`phone_number`: update.Message.Contact.PhoneNumber,
+		}, map[string]interface{}{
+			`id`: userID,
+		})
+	if err != nil {
+		zap.S().Error(err)
+
+		return "", err
+	}
+
+	return update.Message.Contact.PhoneNumber, nil
+}
+
+func registerExecutor(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (int, error) {
+
+	return 0, nil
+}
+
+func getLocationFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
 
 	su := user.NewService(connPool)
 	userID, err := su.UpdateOne(ctx,
