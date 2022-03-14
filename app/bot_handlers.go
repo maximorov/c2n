@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 	"helpers/app/bot"
-	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
@@ -63,7 +62,12 @@ func botHandlers(
 			case "/start":
 				msg.ReplyMarkup = bot.HeadKeyboard
 			case bot.CommandHelp:
-
+				msg.ReplyMarkup = bot.HelpKeyboard
+				_, err = registerExecutor(ctx, update, usr.ID, connPool)
+				if err != nil {
+					zap.S().Error(err)
+				}
+				msg.Text = "Оберіть територію де ви зможете допомогти"
 			case bot.CommandInformation:
 				msg.Text = bot.Information
 			case bot.CommandRadius1:
@@ -176,7 +180,16 @@ func botHandlers(
 					}
 					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 					msg.Text += "\nWrite your problem"
+				case `Your location saved`:
+					s := usecase.NewTaskUseCase(connPool)
+					err := s.CreateRawTask(ctx, usr.ID, update.Message.Location.Longitude, update.Message.Location.Latitude)
+					if err != nil {
+						zap.S().Error(err)
+					}
+					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+					msg.Text += "\nWrite your problem"
 				}
+
 			}
 
 			_, err = botApi.Send(msg)
@@ -244,6 +257,11 @@ func getContactsFotUser(ctx context.Context, update tgbotapi.Update, userID int,
 	}
 
 	return update.Message.Contact.PhoneNumber, nil
+}
+
+func registerExecutor(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (int, error) {
+
+	return 0, nil
 }
 
 func getLocationFotUser(ctx context.Context, update tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
