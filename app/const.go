@@ -3,7 +3,6 @@ package main
 const (
 	// Commands - commands for buttons.
 	CommandHelp               = "Допомогти"
-	CommandNeedHelp           = "Попросити допомогу"
 	CommandInformation        = "Довідка"
 	CommandRadius1            = "Радіус 1 км"
 	CommandRadius3            = "Радіус 3 км"

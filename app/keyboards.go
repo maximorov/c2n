@@ -2,13 +2,14 @@ package main
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"helpers/app/bot"
 )
 
 var (
 	HeadKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandHelp),
-			tgbotapi.NewKeyboardButton(CommandNeedHelp),
+			tgbotapi.NewKeyboardButton(bot.CommandNeedHelp),
 		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandInformation),

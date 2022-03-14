@@ -9,12 +9,12 @@ import (
 	"strings"
 )
 
-type Handler struct {
+type CallbackHandler struct {
 	BotApi              *tgbotapi.BotAPI
 	TaskActivityService *activity.Service
 }
 
-func (s *Handler) Handle(u tgbotapi.Update) bool {
+func (s *CallbackHandler) Handle(u tgbotapi.Update) bool {
 	handled := false
 
 	switch {

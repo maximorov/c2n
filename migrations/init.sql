@@ -40,6 +40,7 @@ create table if not exists users
         constraint users_pk
             primary key,
     phone_number bigint                              not null,
+    name         varchar(127)                        not null,
     created      timestamp default CURRENT_TIMESTAMP not null,
     updated      timestamp,
     deleted      timestamp
