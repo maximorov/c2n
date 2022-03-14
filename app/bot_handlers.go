@@ -63,6 +63,13 @@ func botHandlers(
 			case "/start":
 				msg.ReplyMarkup = bot.HeadKeyboard
 			case bot.CommandHelp:
+
+			case bot.CommandInformation:
+				msg.Text = bot.Information
+			case bot.CommandRadius1:
+				msg.ReplyMarkup = bot.GetLocationKeyboard
+				//msg.Text =
+			case bot.CommandRadius3:
 				//er := executor.NewRepo(connPool)
 				//s := usecase.NewTaskUseCase(connPool)
 				//executor, err := er.FindOne(ctx, []string{`position`}, map[string]interface{}{`user_id`: usr.ID})
@@ -89,15 +96,7 @@ func botHandlers(
 				//		}
 				//	}
 				//}
-				return
-			case bot.CommandInformation:
-				msg.Text = bot.Information
-			case bot.CommandRadius1:
-				msg.ReplyMarkup = bot.GetLocationKeyboard
-				//msg.Text =
-			case bot.CommandRadius3:
-				msg.ReplyMarkup = bot.GetLocationKeyboard
-				//msg.Text =
+				//return
 			case bot.CommandRadius5:
 				msg.ReplyMarkup = bot.GetLocationKeyboard
 				//msg.Text =
