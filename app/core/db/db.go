@@ -32,6 +32,10 @@ func Pool(ctx context.Context, cnf bootstrap.ConfigDb) *pgxpool.Pool {
 	return pool
 }
 
+func GetPool() *pgxpool.Pool {
+	return pool
+}
+
 func connect(ctx context.Context, cnf bootstrap.ConfigDb) *pgxpool.Pool {
 	conf, err := pgxpool.ParseConfig(cnf.DSN())
 	if err != nil {

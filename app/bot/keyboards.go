@@ -14,7 +14,12 @@ var (
 			tgbotapi.NewKeyboardButton(CommandInformation),
 		),
 	)
-	HelpKeyboard = tgbotapi.NewReplyKeyboard(
+	ToMainKeyboard = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandToMain),
+		),
+	)
+	SetAreaKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandRadius1),
 			tgbotapi.NewKeyboardButton(CommandRadius3),
@@ -22,21 +27,6 @@ var (
 		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandAllCity),
-			tgbotapi.NewKeyboardButton(CommandChooseCity),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandContinueHelp),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandToMain),
-		),
-	)
-	NeedHelpKeyboard = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandNewTask),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandProcessHelp),
 		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandToMain),
@@ -48,12 +38,6 @@ var (
 		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandToMain),
-		),
-	)
-	NeedHelpHaveTasksKeyboard = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(`My tasks`),
-			tgbotapi.NewKeyboardButton(`Create new task`),
 		),
 	)
 	GetLocationKeyboard = tgbotapi.NewReplyKeyboard(
