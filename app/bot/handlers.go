@@ -207,12 +207,24 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		msg.ReplyMarkup = ToMainKeyboard
 	}
 
+	s.Ans(msg)
+
+	return false
+}
+
+func (s *MessageHandler) Ans(msg tgbotapi.MessageConfig) {
 	_, err := s.BotApi.Send(msg)
 	if err != nil {
 		zap.S().Error(err)
 	}
+}
 
-	return false
+func (s *MessageHandler) AnsError(chatId int64, err error) {
+	msg := tgbotapi.NewMessage(chatId, err.Error())
+	_, err = s.BotApi.Send(msg)
+	if err != nil {
+		zap.S().Error(err)
+	}
 }
 
 func setContactsFotUser(ctx context.Context, update *tgbotapi.Update, userID int, connPool db.Conn) (string, error) {

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
@@ -24,15 +23,13 @@ func botHandlers(
 	u tgbotapi.UpdateConfig,
 	connPool db.Conn,
 ) {
-	taskServie := task.NewService(connPool)
-
 	clbkHandler := bot.CallbackHandler{
 		botApi,
 		activity.NewService(connPool),
 	}
 	msgHandler := bot.NewMessageHandler(
 		botApi,
-		taskServie,
+		task.NewService(connPool),
 		executor.NewRepo(connPool),
 		executor.NewService(connPool),
 		usecase.NewTaskUseCase(connPool),
@@ -47,6 +44,8 @@ func botHandlers(
 			usr, err := authenticateUser(ctx, update, connPool)
 			if err != nil {
 				zap.S().Error(err)
+				msgHandler.AnsError(update.Message.Chat.ID, err)
+				return
 			}
 
 			ctx = context.WithValue(ctx, `user`, usr)
@@ -63,27 +62,24 @@ func botHandlers(
 
 func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn) (*user.User, error) {
 	if update.Message == nil {
-		return nil, nil
+		return nil, nil // TODO: process when no message
 	}
 
-	userSocNet := soc_net.UserSocNet{
-		UserSocNetID: fmt.Sprintf("%d", update.Message.From.ID),
-	}
-
+	usrSocId := int(update.Message.From.ID)
 	var userId int
 
-	s := soc_net.NewService(connPool)
-	su := user.NewService(connPool)
+	sonNetService := soc_net.NewService(connPool)
+	userService := user.NewService(connPool)
 
-	us, err := s.GetOneBySocNetID(ctx, userSocNet.UserSocNetID)
+	usrSoc, err := sonNetService.GetOneBySocNetID(ctx, usrSocId)
 	if err != nil {
 		if errors.As(err, &pgx.ErrNoRows) {
-			userID, err := su.CreateOne(ctx, update.Message.From.UserName, "")
+			userID, err := userService.CreateOne(ctx, update.Message.From.UserName, "")
 			if err != nil {
 				return nil, err
 			}
 
-			userId, err = s.CreateOne(ctx, userID, userSocNet.UserSocNetID)
+			userId, err = sonNetService.CreateOne(ctx, userID, usrSocId)
 			if err != nil {
 				return nil, err
 			}
@@ -91,10 +87,10 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 
 		return nil, err
 	} else {
-		userId = us.UserId
+		userId = usrSoc.UserId
 	}
 
-	u, err := su.GetOneByID(ctx, userId)
+	u, err := userService.GetOneByID(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
