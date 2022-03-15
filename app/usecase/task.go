@@ -30,10 +30,11 @@ func (s *TaskUseCase) GetTasksForUser(ctx context.Context, circle interface{}) (
 }
 
 func (s *TaskUseCase) CreateRawTask(ctx context.Context, userId int, x, y float64) error {
+	p := db.CreatePoint(x, y)
 	_, err := s.taskRepo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:  userId,
 		`text`:     ``,
-		`position`: db.CreatePoint(x, y),
+		`position`: &p,
 	})
 
 	return err

@@ -12,6 +12,7 @@ import (
 	"helpers/app/usecase"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 func NewMessageHandler(
@@ -110,6 +111,8 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		return true
 	}
 
+	usr := ctx.Value(`user`).(*user.User)
+
 	//log.Printf("[%s] %s", u.Message.From.UserName, u.Message.Text)
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
@@ -126,19 +129,19 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
 	}
 	if u.Message.Location != nil {
-
 		msg.Text = ""
 		switch u.Message.ReplyToMessage.Text {
 		//case CommandCreateNewTask:
 		case CommandNeedCollectLocation:
-			//err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, u.Message.Location.Longitude, u.Message.Location.Latitude)
-			//if err != nil {
-			//	zap.S().Error(err)
-			//}
+			err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, u.Message.Location.Latitude, u.Message.Location.Longitude)
+			if err != nil {
+				zap.S().Error(err)
+			}
 			msg.ReplyMarkup = ToMainKeyboard
 			msg.Text = CommandFiilTaskText
+			s.Ans(msg)
+			return true
 		case SetExecutorLocation:
-			//usr := ctx.Value(`user`).(*user.User)
 			s.handlers[SetExecutorLocation].Handle(ctx, u)
 			return true
 			//err := setLocationFotUser(ctx, u, usr.ID, db.GetPool())
@@ -150,9 +153,16 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 
 	coordsRegexp, _ := regexp.Compile(`^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$`)
 	if coordsRegexp.Match([]byte(u.Message.Text)) { // someone enters coordinates manually
+		lonLat := strings.Split(u.Message.Text, `,`)
+		lat, _ := strconv.ParseFloat(lonLat[0], 64)
+		lon, _ := strconv.ParseFloat(lonLat[1], 64)
+		err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, lat, lon)
+		if err != nil {
+			zap.S().Error(err)
+		}
 		msg.Text = CommandFiilTaskText
 		msg.ReplyMarkup = ToMainKeyboard
-		_, err := s.BotApi.Send(msg)
+		_, err = s.BotApi.Send(msg)
 		if err != nil {
 			zap.S().Error(err)
 		}
@@ -186,23 +196,21 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		//msg.ReplyMarkup =
 		//msg.Text =
 	default: // any text determines like text of task
-		//usr := ctx.Value(`user`).(*user.User)
-		//tsk, err := s.TaskService.GetUsersRawTask(ctx, usr.ID)
-		//if err != nil {
-		//	msg.Text += "Your RAW task didnt found. Start from the beginning"
-		//	_, err = s.BotApi.Send(msg)
-		//	if err != nil {
-		//		zap.S().Error(err)
-		//	}
-		//	return true
-		//}
-		//s := usecase.NewTaskUseCase(db.GetPool())
-		//err = s.UpdateLastRawWithText(ctx, tsk.ID, u.Message.Text)
-		//if err != nil {
-		//	zap.S().Error(err)
-		//}
-		//msg.Text = "Your task #" + strconv.Itoa(tsk.ID) + "\n" +
-		msg.Text = "Your task #111" + "\n" +
+		tsk, err := s.TaskService.GetUsersRawTask(ctx, usr.ID)
+		if err != nil {
+			msg.Text += "Your RAW task didnt found. Start from the beginning"
+			_, err = s.BotApi.Send(msg)
+			if err != nil {
+				zap.S().Error(err)
+			}
+			return true
+		}
+		s := usecase.NewTaskUseCase(db.GetPool())
+		err = s.UpdateLastRawWithText(ctx, tsk.ID, u.Message.Text)
+		if err != nil {
+			zap.S().Error(err)
+		}
+		msg.Text = "Your task #" + strconv.Itoa(tsk.ID) + "\n" +
 			" свами должны связаться в течении " + strconv.Itoa(task.TaskDeadline) + " часов"
 		msg.ReplyMarkup = ToMainKeyboard
 	}
@@ -244,16 +252,15 @@ func setContactsFotUser(ctx context.Context, update *tgbotapi.Update, userID int
 	return update.Message.Contact.PhoneNumber, nil
 }
 
-func setLocationFotUser(ctx context.Context, update *tgbotapi.Update, userID int, connPool db.Conn) error {
-	s := executor.NewService(connPool)
-	ex, err := s.GetOneByUserID(ctx, userID)
+func (s *MessageHandler) setLocationFotUser(ctx context.Context, update *tgbotapi.Update, userID int) error {
+	ex, err := s.ExecutorService.GetOneByUserID(ctx, userID)
 	if err != nil {
 		zap.S().Error(err)
 		return err
 	}
 	point := db.CreatePoint(update.Message.Location.Latitude, update.Message.Location.Longitude)
 
-	_, err = s.UpdateOne(ctx,
+	_, err = s.ExecutorService.UpdateOne(ctx,
 		map[string]interface{}{
 			`position`: point,
 		}, map[string]interface{}{
