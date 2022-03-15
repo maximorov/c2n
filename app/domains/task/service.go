@@ -41,6 +41,17 @@ func (s *Service) GetUsersRawTask(ctx context.Context, userId int) (*Task, error
 	return task, err
 }
 
+func (s *Service) GetUserUndoneTasks(ctx context.Context, userId int) ([]*Task, error) {
+	tasks, err := s.repo.FindMany(ctx, []string{
+		`id`, `status`, `text`,
+	}, map[string]interface{}{
+		`user_id`: userId,
+		`status`:  []string{`new`, `in_progress`},
+	})
+
+	return tasks, err
+}
+
 func (s *Service) IsUserHaveUndoneTasks(ctx context.Context, userId int) bool {
 	_, err := s.repo.FindOne(ctx, []string{
 		`id`,

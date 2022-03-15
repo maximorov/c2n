@@ -2,8 +2,6 @@ package bot
 
 const (
 	// Commands - commands for buttons.
-
-	CommandMyTasks            = `My tasks`
 	CommandInformation        = "Довідка"
 	CommandAllCity            = "По всьому місту"
 	CommandChooseCity         = "Обрати місто"
