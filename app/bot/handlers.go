@@ -94,23 +94,28 @@ func (s *MessageHandler) Init() {
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
+		CommandMyActiveTasks: &MyActiveTasksHandler{s, tgbotapi.NewReplyKeyboard(
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandToMain),
+			),
+		)},
 		SetExecutorLocation: &AfterExecutorLocationSetHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandRadius1),
 				tgbotapi.NewKeyboardButton(CommandRadius3),
 				tgbotapi.NewKeyboardButton(CommandRadius5),
 			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandAllCity),
-			),
+			//tgbotapi.NewKeyboardButtonRow(
+			//	tgbotapi.NewKeyboardButton(CommandAllCity),
+			//),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandRadius1:  &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 1000},
-		CommandRadius3:  &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 3000},
-		CommandRadius5:  &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 5000},
-		CommandRadius10: &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 10000},
+		CommandRadius1:  &SetRadiusHandler{s, SetAreaKeyboard, 1000},
+		CommandRadius3:  &SetRadiusHandler{s, SetAreaKeyboard, 3000},
+		CommandRadius5:  &SetRadiusHandler{s, SetAreaKeyboard, 5000},
+		CommandRadius10: &SetRadiusHandler{s, SetAreaKeyboard, 10000},
 		CommandNoTasks:  &NoTasksHandler{s, SetAreaKeyboard},
 	}
 }
@@ -154,19 +159,15 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		case SetExecutorLocation:
 			s.handlers[SetExecutorLocation].Handle(ctx, u)
 			return true
-			//err := setLocationFotUser(ctx, u, usr.ID, db.GetPool())
-			//if err != nil {
-			//	zap.S().Error(err)
-			//}
 		}
 	}
 
 	switch u.Message.Text {
 	case CommandInformation:
 		msg.Text = Information
-	case CommandAllCity:
-		//msg.ReplyMarkup =
-		//msg.Text =
+	//case CommandAllCity:
+	//msg.ReplyMarkup =
+	//msg.Text =
 	case CommandTakeLocationManual:
 		//msg.ReplyMarkup =
 		//msg.Text =
@@ -179,11 +180,6 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		msg.ReplyMarkup = GetContactsKeyboard
 		msg.Text = "Поділіться будь-ласка контактами, щоб з вами могли звʼязатись"
 		//TODO: нормально пофиксить эту багу..
-		//case CommandGetContact:
-		//	msg.ReplyMarkup = GetLocationKeyboard
-		//	msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
-		//case CommandGetLocation:
-		//	//msg.ReplyMarkup =
 	case CommandProcessHelp:
 		//msg.ReplyMarkup =
 		//msg.Text =

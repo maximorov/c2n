@@ -22,3 +22,14 @@ func (s *Service) CreateActivity(ctx context.Context, userId, taskId int, status
 
 	return err
 }
+
+func (s *Service) UpdateActivity(ctx context.Context, userId, taskId int, status string) error {
+	_, err := s.repo.UpdateOne(ctx, map[string]interface{}{
+		`executor_id`: userId,
+		`task_id`:     taskId,
+	}, map[string]interface{}{
+		`status`: status,
+	})
+
+	return err
+}

@@ -15,10 +15,9 @@ const CommandRadius5 = "Радіус 5 км"
 const CommandRadius10 = "Радіус 10 км"
 
 type SetRadiusHandler struct {
-	handler   *MessageHandler
-	keyboard  tgbotapi.ReplyKeyboardMarkup
-	keyboard2 tgbotapi.ReplyKeyboardMarkup
-	radius    int
+	handler  *MessageHandler
+	keyboard tgbotapi.ReplyKeyboardMarkup
+	radius   int
 }
 
 func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
@@ -40,7 +39,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		// no tasks in area
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 		msg.ReplyToMessageID = u.Message.MessageID
-		msg.ReplyMarkup = s.keyboard2
+		msg.ReplyMarkup = s.keyboard
 		msg.Text = CommandNoTasks
 
 		s.handler.Ans(msg)

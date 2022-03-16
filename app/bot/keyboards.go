@@ -25,9 +25,9 @@ var (
 			tgbotapi.NewKeyboardButton(CommandRadius3),
 			tgbotapi.NewKeyboardButton(CommandRadius5),
 		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandAllCity),
-		),
+		//tgbotapi.NewKeyboardButtonRow(
+		//	tgbotapi.NewKeyboardButton(CommandAllCity),
+		//),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandToMain),
 		),
@@ -53,8 +53,14 @@ var (
 	)
 	TasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(CommandsWillExecute, `execute`),
-			tgbotapi.NewInlineKeyboardButtonData(CommandsRefuseForMe, `hide`),
+			tgbotapi.NewInlineKeyboardButtonData(CommandsWillExecute, ``),
+			tgbotapi.NewInlineKeyboardButtonData(CommandsRefuseForMe, ``),
+		),
+	)
+	ExecutorTasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(`Виконав`, ``),
+			tgbotapi.NewInlineKeyboardButtonData(`Відмовляюсь`, ``),
 		),
 	)
 )

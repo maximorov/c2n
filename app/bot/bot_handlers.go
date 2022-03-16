@@ -48,6 +48,34 @@ func (s *CallbackHandler) Handle(u tgbotapi.Update) bool {
 				zap.S().Error(err)
 			}
 		}
+	case strings.Contains(u.CallbackData(), `complete:`) || strings.Contains(u.CallbackData(), `refuse:`):
+		handled = true
+		parsed := strings.Split(u.CallbackData(), `:`)
+		action := parsed[0]
+		taskId, _ := strconv.Atoi(parsed[1])
+
+		switch action {
+		case `complete`:
+			err := s.TaskActivityService.UpdateActivity(context.TODO(), 1, taskId, `completed`)
+			if err != nil {
+				zap.S().Error(err)
+			}
+			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Дякую`)
+			_, err = s.BotApi.Send(msg)
+			if err != nil {
+				zap.S().Error(err)
+			}
+		case `refuse`:
+			err := s.TaskActivityService.UpdateActivity(context.TODO(), 1, taskId, `refused`)
+			if err != nil {
+				zap.S().Error(err)
+			}
+			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Візьме хтось інший, чи ні`)
+			_, err = s.BotApi.Send(msg)
+			if err != nil {
+				zap.S().Error(err)
+			}
+		}
 	}
 
 	return handled
