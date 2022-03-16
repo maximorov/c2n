@@ -16,6 +16,7 @@ type Config struct {
 }
 
 type ConfigDb struct {
+	URL                  string `env:"DB_URL"`
 	Host                 string `env:"HOST" validate:"min=3"`
 	User                 string `env:"USER" validate:"min=3"`
 	Password             string `env:"PASSWORD" validate:"min=3"`
@@ -32,6 +33,10 @@ type ConfigDb struct {
 }
 
 func (d ConfigDb) DSN() string {
+	if d.URL != `` {
+		return d.URL
+	}
+
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s", /*+
 		"pool_max_conns=%s pool_min_conns=%s "+
@@ -67,6 +72,7 @@ func InitConfig() {
 		Env:           os.Getenv(`ENV`),
 		TelegramToken: os.Getenv(`TELEGRAM_TOKEN`),
 		DB: ConfigDb{
+			URL:                  os.Getenv(`DB_URL`),
 			Host:                 os.Getenv(`DB_HOST`),
 			User:                 os.Getenv(`DB_USER`),
 			Password:             os.Getenv(`DB_PASSWORD`),
