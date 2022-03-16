@@ -15,6 +15,8 @@ import (
 	"strings"
 )
 
+var coordsRegexp, _ = regexp.Compile(`^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$`)
+
 func NewMessageHandler(
 	BotApi *tgbotapi.BotAPI,
 	ts *task.Service,
@@ -75,6 +77,23 @@ func (s *MessageHandler) Init() {
 		CommandFiilTaskText:       &WhatFillTaskText{s, ToMainKeyboard},
 		CommandMyTasks:            &ShowMyTasksHandler{s, ToMainKeyboard},
 
+		CommandHelp: &HelpHandler{s, tgbotapi.NewReplyKeyboard(
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandTakeNewTask),
+				tgbotapi.NewKeyboardButton(CommandMyActiveTasks),
+			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandToMain),
+			),
+		)},
+		CommandTakeNewTask: &TakeNewTaskHandlerHandler{s, tgbotapi.NewReplyKeyboard(
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButtonLocation(CommandGetLocation),
+			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandToMain),
+			),
+		)},
 		SetExecutorLocation: &AfterExecutorLocationSetHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandRadius1),
@@ -88,27 +107,11 @@ func (s *MessageHandler) Init() {
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandHelp: &HelpHandler{s, tgbotapi.NewReplyKeyboard(
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButtonLocation(CommandTakeNewTask),
-				tgbotapi.NewKeyboardButtonLocation(CommandMyActiveTasks),
-			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandToMain),
-			),
-		)},
-		CommandTakeNewTask: &HelpHandler{s, tgbotapi.NewReplyKeyboard(
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButtonLocation(CommandGetLocation), // collect location
-			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandToMain),
-			),
-		)},
-		CommandRadius1: &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 1000},
-		CommandRadius3: &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 3000},
-		CommandRadius5: &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 5000},
-		CommandNoTasks: &NoTasksHandler{s, SetAreaKeyboard},
+		CommandRadius1:  &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 1000},
+		CommandRadius3:  &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 3000},
+		CommandRadius5:  &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 5000},
+		CommandRadius10: &SetRadiusHandler{s, ToMainKeyboard, SetAreaKeyboard, 10000},
+		CommandNoTasks:  &NoTasksHandler{s, SetAreaKeyboard},
 	}
 }
 
@@ -158,24 +161,6 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		}
 	}
 
-	coordsRegexp, _ := regexp.Compile(`^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$`)
-	if coordsRegexp.Match([]byte(u.Message.Text)) { // someone enters coordinates manually
-		lonLat := strings.Split(u.Message.Text, `,`)
-		lat, _ := strconv.ParseFloat(lonLat[0], 64)
-		lon, _ := strconv.ParseFloat(lonLat[1], 64)
-		err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, lat, lon)
-		if err != nil {
-			zap.S().Error(err)
-		}
-		msg.Text = CommandFiilTaskText
-		msg.ReplyMarkup = ToMainKeyboard
-		_, err = s.BotApi.Send(msg)
-		if err != nil {
-			zap.S().Error(err)
-		}
-		return true
-	}
-
 	switch u.Message.Text {
 	case CommandInformation:
 		msg.Text = Information
@@ -202,7 +187,25 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	case CommandProcessHelp:
 		//msg.ReplyMarkup =
 		//msg.Text =
-	default: // any text determines like text of task
+	default:
+		// geolocation coordinates
+		if coordsRegexp.Match([]byte(u.Message.Text)) { // someone enters coordinates manually
+			lonLat := strings.Split(u.Message.Text, `,`)
+			lat, _ := strconv.ParseFloat(lonLat[0], 64)
+			lon, _ := strconv.ParseFloat(lonLat[1], 64)
+			err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, lat, lon)
+			if err != nil {
+				zap.S().Error(err)
+			}
+			msg.Text = CommandFiilTaskText
+			msg.ReplyMarkup = ToMainKeyboard
+			_, err = s.BotApi.Send(msg)
+			if err != nil {
+				zap.S().Error(err)
+			}
+			return true
+		}
+		// any text determines like text of task
 		tsk, err := s.TaskService.GetUsersRawTask(ctx, usr.ID)
 		if err != nil {
 			msg.Text += "Безсмыслица какая-то. Жми на кнопки и не балуйся"

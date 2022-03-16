@@ -89,7 +89,7 @@ func (s *Service) CountDistance(loc1, loc2 pgtype.Point) float64 {
 	return dist
 }
 
-func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, distance float64) ([]*Task, error) {
+func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, area float64) ([]*Task, error) {
 	var result []*Task
 	tasks, err := s.repo.FindMany(ctx, []string{`id`, `position`}, map[string]interface{}{
 		`status`: `new`,
@@ -98,9 +98,10 @@ func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, 
 		return nil, err
 	}
 
+	rad := area / 2
 	for _, task := range tasks {
 		dist := s.CountDistance(task.Position, location)
-		if dist < distance {
+		if dist < rad {
 			result = append(result, task)
 		}
 

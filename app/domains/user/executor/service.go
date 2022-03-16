@@ -14,7 +14,7 @@ type Service struct {
 	repo *Repository
 }
 
-func (s *Service) CreateOne(ctx context.Context, userId, area int, city string, pos pgtype.Point) (int, error) {
+func (s *Service) CreateOne(ctx context.Context, userId, area int, city string, pos *pgtype.Point) (int, error) {
 	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:  userId,
 		`area`:     area,
