@@ -77,9 +77,9 @@ func InitConfig() {
 			MaxLifetimeMinutes:   os.Getenv(`DB_MAX_LIFETIME_MINUTES`),
 			MaxIdleMinutes:       os.Getenv(`DB_MAX_IDLE_MINUTES`),
 			Log:                  os.Getenv(`DB_LOG`),
-			PreferSimpleProtocol: os.Getenv(`DB_PREFER_SIMPLE_PROTOCOL`),
+			PreferSimpleProtocol: `true`,
 			SSLMode:              os.Getenv(`DB_SSL_MODE`),
-			Timezone:             os.Getenv(`DB_TZ`),
+			Timezone:             `UTC`,
 		},
 	}
 }
