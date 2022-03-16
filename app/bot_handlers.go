@@ -14,6 +14,7 @@ import (
 	"helpers/app/domains/user/executor"
 	"helpers/app/domains/user/soc_net"
 	"helpers/app/usecase"
+	"strconv"
 	"time"
 )
 
@@ -65,7 +66,7 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 		return nil, nil // TODO: process when no message
 	}
 
-	usrSocId := int(update.Message.From.ID)
+	usrSocId := strconv.Itoa(int(update.Message.From.ID))
 	var userId int
 
 	sonNetService := soc_net.NewService(connPool)
@@ -74,18 +75,18 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 	usrSoc, err := sonNetService.GetOneBySocNetID(ctx, usrSocId)
 	if err != nil {
 		if errors.As(err, &pgx.ErrNoRows) {
-			userID, err := userService.CreateOne(ctx, update.Message.From.UserName, "")
+			userId, err = userService.CreateOne(ctx, update.Message.From.UserName, "")
 			if err != nil {
 				return nil, err
 			}
 
-			userId, err = sonNetService.CreateOne(ctx, userID, usrSocId)
+			_, err = sonNetService.CreateOne(ctx, userId, usrSocId)
 			if err != nil {
 				return nil, err
 			}
+		} else {
+			return nil, err
 		}
-
-		return nil, err
 	} else {
 		userId = usrSoc.UserId
 	}

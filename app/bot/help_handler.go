@@ -10,6 +10,9 @@ import (
 )
 
 const CommandHelp = "Допомогти"
+const CommandTakeNewOrListMy = `Look my tasks, or take new one`
+const CommandMyActiveTasks = "My active tasks"
+const CommandTakeNewTask = "Take new task"
 
 type HelpHandler struct {
 	handler  *MessageHandler
@@ -27,7 +30,7 @@ func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	//if err != nil {
 	//	zap.S().Error(err)
 	//}
-	msg.Text = SetExecutorLocation
+	msg.Text = CommandTakeNewOrListMy
 	_, err := s.handler.BotApi.Send(msg)
 	if err != nil {
 		zap.S().Error(err)

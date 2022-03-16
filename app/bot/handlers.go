@@ -90,11 +90,17 @@ func (s *MessageHandler) Init() {
 		)},
 		CommandHelp: &HelpHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButtonLocation(CommandTakeNewTask),
+				tgbotapi.NewKeyboardButtonLocation(CommandMyActiveTasks),
+			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandToMain),
+			),
+		)},
+		CommandTakeNewTask: &HelpHandler{s, tgbotapi.NewReplyKeyboard(
+			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButtonLocation(CommandGetLocation), // collect location
 			),
-			//tgbotapi.NewKeyboardButtonRow(
-			//	tgbotapi.NewKeyboardButton(CommandTakeLocationManual),
-			//),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
@@ -117,7 +123,7 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	//log.Printf("[%s] %s", u.Message.From.UserName, u.Message.Text)
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	msg.ReplyToMessageID = u.Message.MessageID
+	//msg.ReplyToMessageID = u.Message.MessageID
 
 	if u.Message.Contact != nil {
 		usr := ctx.Value(`user`).(*user.User)
@@ -199,7 +205,7 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	default: // any text determines like text of task
 		tsk, err := s.TaskService.GetUsersRawTask(ctx, usr.ID)
 		if err != nil {
-			msg.Text += "Your RAW task didnt found. Start from the beginning"
+			msg.Text += "Безсмыслица какая-то. Жми на кнопки и не балуйся"
 			_, err = s.BotApi.Send(msg)
 			if err != nil {
 				zap.S().Error(err)
