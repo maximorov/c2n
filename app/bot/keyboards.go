@@ -63,4 +63,9 @@ var (
 			tgbotapi.NewInlineKeyboardButtonData(`Відмовляюсь`, ``),
 		),
 	)
+	ReopenTaskKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(ReopenText, ``),
+		),
+	)
 )

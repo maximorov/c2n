@@ -3,7 +3,6 @@ package bot
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"go.uber.org/zap"
 )
 
 const CommandStart = "/start"
@@ -18,8 +17,5 @@ func (s *StartHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
 
-	_, err := s.handler.BotApi.Send(msg)
-	if err != nil {
-		zap.S().Error(err)
-	}
+	s.handler.Ans(msg)
 }

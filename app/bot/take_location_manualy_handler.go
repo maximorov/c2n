@@ -3,7 +3,6 @@ package bot
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"go.uber.org/zap"
 )
 
 const CommandWriteLocationManually = `Use google maps to enter coordinates`
@@ -19,8 +18,5 @@ func (s *TakeLocationManualyHandler) Handle(ctx context.Context, u *tgbotapi.Upd
 	msg.ReplyMarkup = s.keyboard
 	msg.Text = CommandWriteLocationManually
 
-	_, err := s.handler.BotApi.Send(msg)
-	if err != nil {
-		zap.S().Error(err)
-	}
+	s.handler.Ans(msg)
 }

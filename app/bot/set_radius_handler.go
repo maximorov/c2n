@@ -29,7 +29,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		zap.S().Error(err)
 		return
 	}
-	err = s.setAreaForUser(ctx, u, usr.ID, s.radius)
+	err = s.setAreaForUser(ctx, usr.ID, s.radius)
 	if err != nil {
 		zap.S().Error(err)
 	}
@@ -61,7 +61,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	return
 }
 
-func (s *SetRadiusHandler) setAreaForUser(ctx context.Context, update *tgbotapi.Update, userID, area int) error {
+func (s *SetRadiusHandler) setAreaForUser(ctx context.Context, userID, area int) error {
 	ex, err := s.handler.ExecutorService.GetOneByUserID(ctx, userID)
 	if err != nil {
 		zap.S().Error(err)

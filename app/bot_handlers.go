@@ -25,20 +25,23 @@ func botHandlers(
 	connPool db.Conn,
 ) {
 	exRepo := executor.NewRepo(connPool)
+	tUC := usecase.NewTaskUseCase(connPool)
 
 	clbkHandler := bot.CallbackHandler{
 		botApi,
 		activity.NewService(connPool),
+		tUC,
 	}
 	msgHandler := bot.NewMessageHandler(
 		botApi,
 		task.NewService(connPool),
 		exRepo,
 		executor.NewService(connPool),
-		usecase.NewTaskUseCase(connPool),
+		tUC,
 	)
 
 	go informExecutors(ctx, exRepo)
+	go setExpired(ctx)
 
 	updates := botApi.GetUpdatesChan(u)
 	for update := range updates {
@@ -59,18 +62,26 @@ func botHandlers(
 			case update.Message != nil:
 				msgHandler.Handle(ctx, &update)
 			case update.CallbackData() != ``:
-				clbkHandler.Handle(update)
+				clbkHandler.Handle(ctx, update)
 			}
 		}()
 	}
 }
 
 func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn) (*user.User, error) {
-	if update.Message == nil {
-		return nil, nil // TODO: process when no message
+	var fromId int
+
+	switch {
+	case update.Message != nil:
+		fromId = int(update.Message.From.ID)
+	case update.CallbackQuery != nil:
+		fromId = int(update.CallbackQuery.From.ID)
+	default:
+		zap.S().Error(`Ahtung! User not authorized`)
+		return nil, nil
 	}
 
-	usrSocId := strconv.Itoa(int(update.Message.From.ID))
+	usrSocId := strconv.Itoa(fromId)
 	var userId int
 
 	sonNetService := soc_net.NewService(connPool)
@@ -127,4 +138,9 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository) {
 			}(ctx)
 		}
 	}
+}
+
+func setExpired(ctx context.Context) {
+	// TODO: set undone tasks as expired after deadline
+	// inform user about (see CallbackHandler.informNeedy)
 }

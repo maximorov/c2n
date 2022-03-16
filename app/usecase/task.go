@@ -4,14 +4,19 @@ import (
 	"context"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
+	"helpers/app/domains/user/soc_net"
 )
 
 func NewTaskUseCase(connPool db.Conn) *TaskUseCase {
-	return &TaskUseCase{taskRepo: task.NewRepo(connPool)}
+	return &TaskUseCase{
+		taskRepo:   task.NewRepo(connPool),
+		socNetRepo: soc_net.NewRepo(connPool),
+	}
 }
 
 type TaskUseCase struct {
-	taskRepo *task.Repository
+	taskRepo   *task.Repository
+	socNetRepo *soc_net.Repository
 }
 
 func (s *TaskUseCase) GetTasksForUser(ctx context.Context, circle interface{}) ([]*task.Task, error) {
@@ -27,6 +32,16 @@ func (s *TaskUseCase) GetTasksForUser(ctx context.Context, circle interface{}) (
 	})
 
 	return res, err
+}
+
+func (s *TaskUseCase) UpdateTaskStatus(ctx context.Context, taskId int, status string) error {
+	_, err := s.taskRepo.UpdateOne(ctx, map[string]interface{}{
+		`status`: status,
+	}, map[string]interface{}{
+		`id`: taskId,
+	})
+
+	return err
 }
 
 func (s *TaskUseCase) CreateRawTask(ctx context.Context, userId int, x, y float64) error {
@@ -50,4 +65,24 @@ func (s *TaskUseCase) UpdateLastRawWithText(ctx context.Context, taskId int, tex
 		})
 
 	return err
+}
+
+func (s *TaskUseCase) GetSocUserByTask(ctx context.Context, taskId int) (*soc_net.UserSocNet, error) {
+	taskUser, err := s.taskRepo.FindOne(
+		ctx,
+		[]string{`user_id`},
+		map[string]interface{}{`id`: taskId})
+	if err != nil {
+		return nil, err
+	}
+
+	socNetUser, err := s.socNetRepo.FindOne(
+		ctx,
+		[]string{`soc_net_id`},
+		map[string]interface{}{`user_id`: taskUser.UserID})
+	if err != nil {
+		return nil, err
+	}
+
+	return socNetUser, nil
 }
