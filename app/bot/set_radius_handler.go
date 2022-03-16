@@ -55,10 +55,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
 		msg.ReplyMarkup = TasksListKeyboard
 		msg.Text = "Task " + tId + "\n" + t.Text
-		_, err := s.handler.BotApi.Send(msg)
-		if err != nil {
-			zap.S().Error(err)
-		}
+		s.handler.Ans(msg)
 	}
 
 	return

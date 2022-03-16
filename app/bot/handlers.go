@@ -73,7 +73,7 @@ func (s *MessageHandler) Init() {
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandTakeLocationManual: &TaksLocationManualyHandler{s, ToMainKeyboard},
+		CommandTakeLocationManual: &TakeLocationManualyHandler{s, ToMainKeyboard},
 		CommandFiilTaskText:       &WhatFillTaskText{s, ToMainKeyboard},
 		CommandMyTasks:            &ShowMyTasksHandler{s, ToMainKeyboard},
 
@@ -105,9 +105,6 @@ func (s *MessageHandler) Init() {
 				tgbotapi.NewKeyboardButton(CommandRadius3),
 				tgbotapi.NewKeyboardButton(CommandRadius5),
 			),
-			//tgbotapi.NewKeyboardButtonRow(
-			//	tgbotapi.NewKeyboardButton(CommandAllCity),
-			//),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),

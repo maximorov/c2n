@@ -24,6 +24,8 @@ func botHandlers(
 	u tgbotapi.UpdateConfig,
 	connPool db.Conn,
 ) {
+	exRepo := executor.NewRepo(connPool)
+
 	clbkHandler := bot.CallbackHandler{
 		botApi,
 		activity.NewService(connPool),
@@ -31,10 +33,12 @@ func botHandlers(
 	msgHandler := bot.NewMessageHandler(
 		botApi,
 		task.NewService(connPool),
-		executor.NewRepo(connPool),
+		exRepo,
 		executor.NewService(connPool),
 		usecase.NewTaskUseCase(connPool),
 	)
+
+	go informExecutors(ctx, exRepo)
 
 	updates := botApi.GetUpdatesChan(u)
 	for update := range updates {
@@ -97,4 +101,30 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 	}
 
 	return u, nil
+}
+
+func informExecutors(ctx context.Context, exRepo *executor.Repository) {
+	t := time.NewTicker(time.Minute)
+	for {
+		select {
+		case <-t.C:
+			n := time.Now()
+
+			if n.Hour() < 8 || n.Hour() > 22 { //at night all sleeps
+				continue
+			}
+			if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
+				zap.S().Info("Not a time")
+				continue
+			}
+
+			zap.S().Info("Time!")
+
+			go func(ctx context.Context) {
+				// TODO: send last 10 tasks to executors in area in GOroutine
+				// in executor.inform == true
+				// в клавиатуру добавить кнопку "отписаться" (executor.inform = false)
+			}(ctx)
+		}
+	}
 }

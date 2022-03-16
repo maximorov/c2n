@@ -3,8 +3,6 @@ package bot
 const (
 	// Commands - commands for buttons.
 	CommandInformation        = "Довідка"
-	CommandAllCity            = "По всьому місту"
-	CommandChooseCity         = "Обрати місто"
 	CommandContinueHelp       = "Продовжити допомогу"
 	CommandToMain             = "На головну"
 	CommandNewTask            = "Новий запит"

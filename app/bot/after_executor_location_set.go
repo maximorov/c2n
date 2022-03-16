@@ -25,9 +25,10 @@ func (s *AfterExecutorLocationSetHandler) Handle(ctx context.Context, u *tgbotap
 	}
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	msg.ReplyToMessageID = u.Message.MessageID
-
 	msg.ReplyMarkup = s.keyboard
+	msg.Text = `Вы подписаны на информирование`
+	s.handler.Ans(msg)
+
 	msg.Text = "Оберіть територію де ви зможете допомогти"
 	s.handler.Ans(msg)
 }
@@ -45,6 +46,8 @@ func (s *AfterExecutorLocationSetHandler) registerExecutor(ctx context.Context, 
 
 			return userExecutorID, nil
 		}
+	} else {
+		// TODO: update position
 	}
 
 	return ex.ID, err

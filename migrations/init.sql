@@ -82,13 +82,13 @@ execute procedure set_updated_column();
 
 create table if not exists users_executors
 (
-    id           bigserial
-            constraint users_executors_pk
-                primary key,
-    user_id  bigint             not null,
-    position point              not null,
-    area     smallint default 1 not null,
-    city     varchar(31)        not null
+    id       bigserial
+        constraint users_executors_pk
+            primary key,
+    user_id  bigint                not null,
+    position point                 not null,
+    area     smallint default 1000 not null,
+    city     varchar(31)           not null
 );
 
 create table if not exists tasks_appeales
@@ -100,3 +100,7 @@ create table if not exists tasks_appeales
     task_id bigint       not null,
     text    varchar(255) not null
 );
+
+alter table users_executors
+    add inform bool default true not null;
+
