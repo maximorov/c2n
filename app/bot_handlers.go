@@ -120,15 +120,15 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 	for {
 		select {
 		case <-t.C:
-			//n := time.Now()
-			//
-			//if n.Hour() < 8 || n.Hour() > 22 { //at night all sleeps
-			//	continue
-			//}
-			//if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
-			//	zap.S().Info("Not a time")
-			//	continue
-			//}
+			n := time.Now()
+
+			if n.Hour() < 8 || n.Hour() > 22 { //at night all sleeps
+				continue
+			}
+			if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
+				zap.S().Info("Not a time")
+				continue
+			}
 
 			zap.S().Info("Time!")
 
