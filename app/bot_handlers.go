@@ -116,7 +116,7 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 }
 
 func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool db.Conn, callBack bot.CallbackHandler) {
-	t := time.NewTicker(time.Second)
+	t := time.NewTicker(time.Minute)
 	for {
 		select {
 		case <-t.C:
