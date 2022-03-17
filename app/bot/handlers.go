@@ -109,11 +109,13 @@ func (s *MessageHandler) Init() {
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandRadius1:  &SetRadiusHandler{s, SetAreaKeyboard, 1000},
-		CommandRadius3:  &SetRadiusHandler{s, SetAreaKeyboard, 3000},
-		CommandRadius5:  &SetRadiusHandler{s, SetAreaKeyboard, 5000},
-		CommandRadius10: &SetRadiusHandler{s, SetAreaKeyboard, 10000},
-		CommandNoTasks:  &NoTasksHandler{s, SetAreaKeyboard},
+		CommandRadius1:     &SetRadiusHandler{s, SetAreaKeyboard, 1000},
+		CommandRadius3:     &SetRadiusHandler{s, SetAreaKeyboard, 3000},
+		CommandRadius5:     &SetRadiusHandler{s, SetAreaKeyboard, 5000},
+		CommandRadius10:    &SetRadiusHandler{s, SetAreaKeyboard, 10000},
+		CommandNoTasks:     &NoTasksHandler{s, SetAreaKeyboard},
+		CommandSubscribe:   &SubscribeHandler{s, HeadKeyboard, true},
+		CommandUnsubscribe: &SubscribeHandler{s, HeadKeyboard, false},
 	}
 }
 

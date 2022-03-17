@@ -29,6 +29,16 @@ func (s *Service) UpdateOne(ctx context.Context, entity map[string]interface{}, 
 	return s.repo.UpdateOne(ctx, entity, cond)
 }
 
+func (s *Service) SetSubscribeInfo(ctx context.Context, userID int, sub bool) (int, error) {
+	return s.UpdateOne(ctx,
+		map[string]interface{}{
+			`inform`: sub,
+		},
+		map[string]interface{}{
+			`user_id`: userID,
+		})
+}
+
 func (s *Service) GetOneByUserID(ctx context.Context, userId int) (*UserExecutor, error) {
 	user, err := s.repo.FindOne(ctx, []string{`id`, `area`, `city`}, map[string]interface{}{
 		`user_id`: userId,

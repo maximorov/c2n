@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 	"helpers/app/bot"
+	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
@@ -40,7 +41,7 @@ func botHandlers(
 		tUC,
 	)
 
-	go informExecutors(ctx, exRepo)
+	go informExecutors(ctx, exRepo, connPool, clbkHandler)
 	go setExpired(ctx)
 
 	updates := botApi.GetUpdatesChan(u)
@@ -114,27 +115,68 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 	return u, nil
 }
 
-func informExecutors(ctx context.Context, exRepo *executor.Repository) {
-	t := time.NewTicker(time.Minute)
+func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool db.Conn, callBack bot.CallbackHandler) {
+	t := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-t.C:
-			n := time.Now()
-
-			if n.Hour() < 8 || n.Hour() > 22 { //at night all sleeps
-				continue
-			}
-			if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
-				zap.S().Info("Not a time")
-				continue
-			}
+			//n := time.Now()
+			//
+			//if n.Hour() < 8 || n.Hour() > 22 { //at night all sleeps
+			//	continue
+			//}
+			//if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
+			//	zap.S().Info("Not a time")
+			//	continue
+			//}
 
 			zap.S().Info("Time!")
 
 			go func(ctx context.Context) {
-				// TODO: send last 10 tasks to executors in area in GOroutine
-				// in executor.inform == true
-				// в клавиатуру добавить кнопку "отписаться" (executor.inform = false)
+				executors, err := exRepo.FindMany(ctx,
+					[]string{`id`, `user_id`, `position`, `area`, `city`, `inform`},
+					map[string]interface{}{})
+				if err != nil {
+					zap.S().Error(err)
+				}
+
+				for _, executor := range executors {
+					if executor.Inform == false {
+						continue
+					}
+
+					s := task.NewService(connPool)
+					tasks, err := s.FindTasksInRadius(ctx, executor.Position, float64(executor.Area))
+					if err != nil {
+						zap.S().Error(err)
+					}
+
+					if len(tasks) == 0 {
+						continue
+					}
+					sSoc := soc_net.NewService(connPool)
+					userSocNet, err := sSoc.GetOneByUserID(ctx, executor.UserId)
+					if err != nil {
+						zap.S().Error(err)
+					}
+
+					socNenID, _ := strconv.Atoi(userSocNet.SocNetID)
+
+					msg := tgbotapi.NewMessage(int64(socNenID), "Люди на обраній вами території потребують допомоги:")
+					callBack.Ans(msg)
+
+					for _, t := range tasks {
+						tId := strconv.Itoa(t.ID)
+						bot.TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
+						bot.TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
+						msg.ReplyMarkup = bot.TasksListKeyboard
+						msg.Text = "Task " + tId + "\n" + t.Text
+						callBack.Ans(msg)
+					}
+					msg.ReplyMarkup = bot.UnsubscribeKeyboard
+					msg.Text = "Якщо не хочете отримувати автоматичну розсилку натисніть \"Відписатися\""
+					callBack.Ans(msg)
+				}
 			}(ctx)
 		}
 	}

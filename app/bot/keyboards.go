@@ -51,6 +51,22 @@ var (
 			tgbotapi.NewKeyboardButton(CommandToMain),
 		),
 	)
+	SubscribeKeyboard = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandSubscribe),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandToMain),
+		),
+	)
+	UnsubscribeKeyboard = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandUnsubscribe),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandToMain),
+		),
+	)
 	TasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(CommandsWillExecute, ``),
