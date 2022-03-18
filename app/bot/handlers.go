@@ -165,18 +165,12 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	case CommandTakeLocationManual:
 		//msg.ReplyMarkup =
 		//msg.Text =
-	case CommandContinueHelp:
-		//msg.ReplyMarkup =
-		//msg.Text =
 	case CommandToMain:
 		msg.ReplyMarkup = HeadKeyboard
 	case CommandNewTask:
 		msg.ReplyMarkup = GetContactsKeyboard
 		msg.Text = "Поділіться будь-ласка контактами, щоб з вами могли звʼязатись"
 		//TODO: нормально пофиксить эту багу..
-	case CommandProcessHelp:
-		//msg.ReplyMarkup =
-		//msg.Text =
 	default:
 		// geolocation coordinates
 		if coordsRegexp.Match([]byte(u.Message.Text)) { // someone enters coordinates manually
