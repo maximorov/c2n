@@ -11,6 +11,8 @@ import (
 	"strconv"
 )
 
+const NoUndoneTasksMessage = `No undone tasks`
+
 type MyActiveTasksHandler struct {
 	handler  *MessageHandler
 	keyboard tgbotapi.ReplyKeyboardMarkup
@@ -26,7 +28,7 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 		msg.ReplyToMessageID = u.Message.MessageID
 		msg.ReplyMarkup = s.keyboard
-		msg.Text = SetExecutorLocation
+		msg.Text = NoUndoneTasksMessage
 		s.handler.Ans(msg)
 		return
 	}

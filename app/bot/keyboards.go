@@ -23,11 +23,11 @@ var (
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandRadius1),
 			tgbotapi.NewKeyboardButton(CommandRadius3),
-			tgbotapi.NewKeyboardButton(CommandRadius5),
 		),
-		//tgbotapi.NewKeyboardButtonRow(
-		//	tgbotapi.NewKeyboardButton(CommandAllCity),
-		//),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandRadius5),
+			tgbotapi.NewKeyboardButton(CommandRadius10),
+		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandToMain),
 		),

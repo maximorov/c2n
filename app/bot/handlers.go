@@ -96,26 +96,21 @@ func (s *MessageHandler) Init() {
 		)},
 		CommandMyActiveTasks: &MyActiveTasksHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandToMain),
-			),
-		)},
-		SetExecutorLocation: &AfterExecutorLocationSetHandler{s, tgbotapi.NewReplyKeyboard(
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandRadius1),
-				tgbotapi.NewKeyboardButton(CommandRadius3),
-				tgbotapi.NewKeyboardButton(CommandRadius5),
+				tgbotapi.NewKeyboardButton(CommandTakeNewTask),
+				tgbotapi.NewKeyboardButton(CommandMyActiveTasks),
 			),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandRadius1:     &SetRadiusHandler{s, SetAreaKeyboard, 1000},
-		CommandRadius3:     &SetRadiusHandler{s, SetAreaKeyboard, 3000},
-		CommandRadius5:     &SetRadiusHandler{s, SetAreaKeyboard, 5000},
-		CommandRadius10:    &SetRadiusHandler{s, SetAreaKeyboard, 10000},
-		CommandNoTasks:     &NoTasksHandler{s, SetAreaKeyboard},
-		CommandSubscribe:   &SubscribeHandler{s, HeadKeyboard, true},
-		CommandUnsubscribe: &SubscribeHandler{s, HeadKeyboard, false},
+		SetExecutorLocation: &AfterExecutorLocationSetHandler{s, SetAreaKeyboard},
+		CommandRadius1:      &SetRadiusHandler{s, SetAreaKeyboard, 1000},
+		CommandRadius3:      &SetRadiusHandler{s, SetAreaKeyboard, 3000},
+		CommandRadius5:      &SetRadiusHandler{s, SetAreaKeyboard, 5000},
+		CommandRadius10:     &SetRadiusHandler{s, SetAreaKeyboard, 10000},
+		CommandNoTasks:      &NoTasksHandler{s, SetAreaKeyboard},
+		CommandSubscribe:    &SubscribeHandler{s, HeadKeyboard, true},
+		CommandUnsubscribe:  &SubscribeHandler{s, HeadKeyboard, false},
 	}
 }
 

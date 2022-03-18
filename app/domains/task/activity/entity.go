@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+var AllowedStatuses = map[string]map[string]bool{
+	// TODO: write allowed statuses movement like in task.status
+}
+
 type TaskActivity struct {
 	ID         int `table_name:"tasks_activity"`
 	ExecutorID int

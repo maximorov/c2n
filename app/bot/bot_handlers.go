@@ -6,6 +6,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"helpers/app/core"
+	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
 	"helpers/app/domains/user"
 	"helpers/app/usecase"
@@ -114,21 +115,21 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 	switch status {
 	case `refuse`:
 		msg.Text = `Волонтер отказался от вашей задачи. Ждем другого`
-		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, `new`)
+		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusNew)
 		if err != nil {
 			zap.S().Error(err)
 			return
 		}
 	case `complete`:
 		msg.Text = `Волонтер отметил вашу задачу как выполнено. Если это не так - нажмите ` + ReopenText
-		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, `done`)
+		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusDone)
 		if err != nil {
 			zap.S().Error(err)
 			return
 		}
 	case `taken`:
 		msg.Text = `Волонтер вляз вашу задачу в работу. Если в течении нескольких часов с вами не связались, нажмите ` + ReopenText
-		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, `in_progress`)
+		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusInProgress)
 		if err != nil {
 			zap.S().Error(err)
 			return
@@ -136,7 +137,7 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 	case `reopen`:
 		msg.Text = fmt.Sprintf("ваша задача %d переоткрыта", tId)
 		msg.ReplyMarkup = ToMainKeyboard
-		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, `new`)
+		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusNew)
 		if err != nil {
 			zap.S().Error(err)
 			return

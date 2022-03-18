@@ -2,10 +2,15 @@ package usecase
 
 import (
 	"context"
+	"fmt"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/user/soc_net"
 )
+
+const CantUpdateStatus = `Can't update task status`
 
 func NewTaskUseCase(connPool db.Conn) *TaskUseCase {
 	return &TaskUseCase{
@@ -35,7 +40,27 @@ func (s *TaskUseCase) GetTasksForUser(ctx context.Context, circle interface{}) (
 }
 
 func (s *TaskUseCase) UpdateTaskStatus(ctx context.Context, taskId int, status string) error {
-	_, err := s.taskRepo.UpdateOne(ctx, map[string]interface{}{
+	currentTask, err := s.taskRepo.FindOne(
+		ctx,
+		[]string{`status`},
+		map[string]interface{}{`id`: taskId})
+	if err != nil {
+		return err
+	}
+
+	// check if status can be changed
+	var ok bool
+	var allowedStatuses map[string]bool
+
+	if allowedStatuses, ok = task.AllowedStatuses[currentTask.Status]; !ok {
+		zap.S().Error(fmt.Sprintf(`No status '%s' in allowed status list`, currentTask.Status))
+		return errors.New(CantUpdateStatus)
+	}
+	if _, ok = allowedStatuses[status]; !ok {
+		return errors.New(CantUpdateStatus)
+	}
+
+	_, err = s.taskRepo.UpdateOne(ctx, map[string]interface{}{
 		`status`: status,
 	}, map[string]interface{}{
 		`id`: taskId,
