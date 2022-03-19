@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
+	"helpers/app/domains/task/activity"
 	"helpers/app/domains/user/soc_net"
 )
 
@@ -16,14 +18,16 @@ const CantUpdateStatus = `Can't update task status`
 
 func NewTaskUseCase(connPool db.Conn) *TaskUseCase {
 	return &TaskUseCase{
-		taskRepo:   task.NewRepo(connPool),
-		socNetRepo: soc_net.NewRepo(connPool),
+		taskRepo:         task.NewRepo(connPool),
+		taskActivityRepo: activity.NewRepo(connPool),
+		socNetRepo:       soc_net.NewRepo(connPool),
 	}
 }
 
 type TaskUseCase struct {
-	taskRepo   *task.Repository
-	socNetRepo *soc_net.Repository
+	taskRepo         *task.Repository
+	taskActivityRepo *activity.Repository
+	socNetRepo       *soc_net.Repository
 }
 
 func (s *TaskUseCase) GetTasksForUser(ctx context.Context, circle interface{}) ([]*task.Task, error) {
@@ -107,6 +111,29 @@ func (s *TaskUseCase) GetSocUserByTask(ctx context.Context, taskId int) (*soc_ne
 		ctx,
 		[]string{`soc_net_id`},
 		map[string]interface{}{`user_id`: taskUser.UserID})
+	if err != nil {
+		return nil, err
+	}
+
+	return socNetUser, nil
+}
+
+func (s *TaskUseCase) GetSocExecutorByTaskActivity(ctx context.Context, taskId int) (*soc_net.UserSocNet, error) {
+	taskExecutor, err := s.taskActivityRepo.FindOne(
+		ctx,
+		[]string{`executor_id`},
+		map[string]interface{}{`task_id`: taskId, `status`: `taken`})
+	if err != nil {
+		if errors.As(err, &pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	socNetUser, err := s.socNetRepo.FindOne(
+		ctx,
+		[]string{`soc_net_id`},
+		map[string]interface{}{`user_id`: taskExecutor.ExecutorID})
 	if err != nil {
 		return nil, err
 	}

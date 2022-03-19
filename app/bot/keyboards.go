@@ -84,4 +84,9 @@ var (
 			tgbotapi.NewInlineKeyboardButtonData(ReopenText, ``),
 		),
 	)
+	CancelTaskKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(CancelText, ``),
+		),
+	)
 )

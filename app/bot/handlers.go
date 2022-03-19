@@ -77,7 +77,7 @@ func (s *MessageHandler) Init() {
 		)},
 		CommandTakeLocationManual: &TakeLocationManualyHandler{s, ToMainKeyboard},
 		CommandFiilTaskText:       &WhatFillTaskText{s, ToMainKeyboard},
-		CommandMyTasks:            &ShowMyTasksHandler{s, ToMainKeyboard},
+		CommandMyTasks:            &ShowMyTasksHandler{s, ToMainKeyboard, CancelTaskKeyboard},
 
 		CommandHelp: &HelpHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(

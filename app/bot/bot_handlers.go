@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jackc/pgx/v4"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"helpers/app/core"
 	"helpers/app/domains/task"
@@ -16,6 +18,9 @@ import (
 
 const ReopenText = `Reopen`
 const ReopenCallback = `reopen`
+
+const CancelText = `Cancel`
+const CancelCallback = `cancel`
 
 type CallbackHandler struct {
 	BotApi              *tgbotapi.BotAPI
@@ -86,6 +91,14 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		s.informNeedy(ctx, taskId, `refuse`)
 	case `reopen`:
 		s.informNeedy(ctx, taskId, `reopen`)
+	case CancelCallback:
+		if s.informExecutor(ctx, taskId, CancelCallback) {
+			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Виконався попереджено`)
+			s.Ans(msg)
+		} else {
+			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Задача закрита`)
+			s.Ans(msg)
+		}
 	default:
 		zap.S().Error(`callback didnt processed`)
 		handled = false
@@ -145,4 +158,37 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 	}
 
 	s.Ans(msg)
+}
+
+// returns is executor wos informed
+func (s *CallbackHandler) informExecutor(ctx context.Context, tId int, status string) bool {
+	switch status {
+	case CancelCallback:
+		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusCancelled)
+		if err != nil {
+			zap.S().Error(err)
+			return false
+		}
+	}
+
+	socExecutor, err := s.TaskUseCase.GetSocExecutorByTaskActivity(ctx, tId)
+	if socExecutor == nil {
+		if err != nil && !errors.As(err, &pgx.ErrNoRows) {
+			zap.S().Error(err)
+		}
+		return false
+	}
+	chatId, err := strconv.Atoi(socExecutor.SocNetID)
+	if err != nil {
+		zap.S().Error(err)
+		return false
+	}
+
+	msg := tgbotapi.NewMessage(int64(chatId), ``)
+	msg.ReplyMarkup = ToMainKeyboard
+	msg.Text = `Задача закрыта. Составитель отказался`
+
+	s.Ans(msg)
+
+	return true
 }

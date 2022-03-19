@@ -7,22 +7,24 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"helpers/app/core"
 	"helpers/app/domains/user"
+	"strconv"
 )
 
 const CommandMyTasks = `My tasks`
 
 type ShowMyTasksHandler struct {
-	handler  *MessageHandler
-	keyboard tgbotapi.ReplyKeyboardMarkup
+	handler   *MessageHandler
+	keyboard  tgbotapi.ReplyKeyboardMarkup
+	keyboardM tgbotapi.InlineKeyboardMarkup
 }
 
 func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
-	msg.ReplyToMessageID = u.Message.MessageID
-	msg.ReplyMarkup = s.keyboard
+	kb := s.keyboardM
 
 	tasks, err := s.handler.TaskService.GetUserUndoneTasks(ctx, usr.ID)
 	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
@@ -32,11 +34,14 @@ func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 
 	if len(tasks) > 0 {
 		for _, tsk := range tasks {
+			kb.InlineKeyboard[0][0].CallbackData = core.StrP(CancelCallback + `:` + strconv.Itoa(tsk.ID))
+			msg.ReplyMarkup = kb
 			msg.Text = fmt.Sprintf("Task #%d\n%s\n%s", tsk.ID, tsk.Text, tsk.Status)
 			s.handler.Ans(msg)
 		}
 	} else {
 		msg.Text = "You have no tasks"
+		msg.ReplyMarkup = s.keyboard
 		s.handler.Ans(msg)
 	}
 }
