@@ -75,8 +75,8 @@ var (
 	)
 	ExecutorTasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(`Виконав`, ``),
-			tgbotapi.NewInlineKeyboardButtonData(`Відмовляюсь`, ``),
+			tgbotapi.NewInlineKeyboardButtonData(SymbAccept+` Виконав`, ``),
+			tgbotapi.NewInlineKeyboardButtonData(SymbRefuse+` Відмовляюсь`, ``),
 		),
 	)
 	ReopenTaskKeyboard = tgbotapi.NewInlineKeyboardMarkup(

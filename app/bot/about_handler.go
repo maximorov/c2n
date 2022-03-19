@@ -5,18 +5,18 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const CommandStart = "/start"
-const CommandToMain = "К початку"
+const CommandInformation = "Довідка"
 
-type StartHandler struct {
+type AboutHandler struct {
 	handler  *MessageHandler
 	keyboard tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *StartHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *AboutHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	msg.ReplyToMessageID = u.Message.MessageID
+	//msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
+	msg.Text = Information
 
 	s.handler.Ans(msg)
 }

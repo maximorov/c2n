@@ -51,7 +51,9 @@ type MessageHandler struct {
 
 func (s *MessageHandler) Init() {
 	s.handlers = map[string]Handler{
-		CommandStart: &StartHandler{s, HeadKeyboard},
+		CommandStart:       &StartHandler{s, HeadKeyboard},
+		CommandToMain:      &StartHandler{s, HeadKeyboard},
+		CommandInformation: &StartHandler{s, HeadKeyboard},
 
 		CommandNeedHelp: &NeedHelpHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
@@ -157,16 +159,6 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	}
 
 	switch u.Message.Text {
-	case CommandInformation:
-		msg.Text = Information
-	//case CommandAllCity:
-	//msg.ReplyMarkup =
-	//msg.Text =
-	case CommandTakeLocationManual:
-		//msg.ReplyMarkup =
-		//msg.Text =
-	case CommandToMain:
-		msg.ReplyMarkup = HeadKeyboard
 	case CommandNewTask:
 		msg.ReplyMarkup = GetContactsKeyboard
 		msg.Text = "Поділіться будь-ласка контактами, щоб з вами могли звʼязатись"
