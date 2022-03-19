@@ -11,5 +11,7 @@ const (
 	Information = "тут виводиться довідка"
 
 	SymbAccept = `✅`
-	SymbRefuse = `❌ `
+	SymbRefuse = `❌`
+	SymbHide   = `🚫`
+	SymbWillDo = `💪`
 )

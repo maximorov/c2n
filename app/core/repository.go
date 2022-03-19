@@ -55,7 +55,7 @@ func (s *TableSchema) cacheTableName() {
 	s._table = val
 }
 
-func (s *TableSchema) TableName() string { // @TODO: Add cache
+func (s *TableSchema) TableName() string {
 	return s._table
 }
 

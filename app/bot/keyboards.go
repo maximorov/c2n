@@ -69,8 +69,8 @@ var (
 	)
 	TasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(CommandsWillExecute, ``),
-			tgbotapi.NewInlineKeyboardButtonData(CommandsRefuseForMe, ``),
+			tgbotapi.NewInlineKeyboardButtonData(SymbWillDo+` `+CommandsWillExecute, ``),
+			tgbotapi.NewInlineKeyboardButtonData(SymbHide+` `+CommandsRefuseForMe, ``),
 		),
 	)
 	ExecutorTasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
