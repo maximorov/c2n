@@ -20,7 +20,7 @@ type MyActiveTasksHandler struct {
 
 func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
-	tasks, err := s.handler.TaskService.GetUserUndoneTasks(ctx, usr.ID)
+	tasks, err := s.handler.TaskUseCase.GetExecutorUndoneTasks(ctx, usr.ID)
 	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
 		zap.S().Error(err)
 	}

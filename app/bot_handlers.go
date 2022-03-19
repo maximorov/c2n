@@ -146,7 +146,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 					}
 
 					s := task.NewService(connPool)
-					tasks, err := s.FindTasksInRadius(ctx, executor.Position, float64(executor.Area))
+					tasks, err := s.FindTasksInRadius(ctx, executor.Position, executor.UserId, float64(executor.Area))
 					if err != nil {
 						zap.S().Error(err)
 					}

@@ -22,7 +22,7 @@ func (s *Service) CreateOne(ctx context.Context, userId int, userSocNetId string
 	return id, err
 }
 
-func (s *Service) GetOneByUserID(ctx context.Context, userID int64) (*UserSocNet, error) {
+func (s *Service) GetOneByUserID(ctx context.Context, userID int) (*UserSocNet, error) {
 	user, err := s.repo.FindOne(ctx, []string{`id`, `soc_net_id`}, map[string]interface{}{
 		`user_id`: userID,
 	})

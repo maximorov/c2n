@@ -22,7 +22,7 @@ type SetRadiusHandler struct {
 
 func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
-	e, err := s.handler.ExecutorRepo.FindOne(ctx, []string{`position`, `area`}, map[string]interface{}{
+	e, err := s.handler.ExecutorRepo.FindOne(ctx, []string{`user_id`, `position`, `area`}, map[string]interface{}{
 		`user_id`: usr.ID,
 	})
 	if err != nil {
@@ -34,7 +34,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		zap.S().Error(err)
 	}
 
-	tasks, err := s.handler.TaskService.FindTasksInRadius(ctx, e.Position, float64(e.Area))
+	tasks, err := s.handler.TaskService.FindTasksInRadius(ctx, e.Position, e.UserId, float64(e.Area))
 	if len(tasks) == 0 {
 		// no tasks in area
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
@@ -62,16 +62,11 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 }
 
 func (s *SetRadiusHandler) setAreaForUser(ctx context.Context, userID, area int) error {
-	ex, err := s.handler.ExecutorService.GetOneByUserID(ctx, userID)
-	if err != nil {
-		zap.S().Error(err)
-		return err
-	}
-	_, err = s.handler.ExecutorService.UpdateOne(ctx,
+	_, err := s.handler.ExecutorService.UpdateOne(ctx,
 		map[string]interface{}{
 			`area`: area,
 		}, map[string]interface{}{
-			`id`: ex.ID,
+			`user_id`: userID,
 		})
 	if err != nil {
 		zap.S().Error(err)

@@ -50,5 +50,5 @@ func (s *AfterExecutorLocationSetHandler) registerExecutor(ctx context.Context, 
 		// TODO: update position
 	}
 
-	return ex.ID, err
+	return ex.UserId, err
 }

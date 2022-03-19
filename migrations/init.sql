@@ -82,10 +82,7 @@ execute procedure set_updated_column();
 
 create table if not exists users_executors
 (
-    id       bigserial
-        constraint users_executors_pk
-            primary key,
-    user_id  bigint                not null,
+    user_id  bigint             primary key   not null,
     position point                 not null,
     area     smallint default 1000 not null,
     city     varchar(31)           not null

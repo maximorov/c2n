@@ -142,6 +142,10 @@ func FindOne(ctx context.Context, conn db.Conn, tName string, result Entity, fie
 		Where(condition).
 		Limit(1)
 
+	return FindOneSB(ctx, conn, sb, result)
+}
+
+func FindOneSB(ctx context.Context, conn db.Conn, sb sq.SelectBuilder, result interface{}) error {
 	sql, args, err := sb.ToSql()
 
 	err = pgxscan.Get(ctx, conn, result, sql, args...)
@@ -159,6 +163,10 @@ func FindMany(ctx context.Context, conn db.Conn, tName string, result interface{
 		From(`"` + tName + `"`).
 		Where(condition)
 
+	return FindManySB(ctx, conn, sb, result)
+}
+
+func FindManySB(ctx context.Context, conn db.Conn, sb sq.SelectBuilder, result interface{}) error {
 	sql, args, err := sb.ToSql()
 
 	err = pgxscan.Select(ctx, conn, result, sql, args...)

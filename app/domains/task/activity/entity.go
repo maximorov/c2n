@@ -9,7 +9,7 @@ var AllowedStatuses = map[string]map[string]bool{
 }
 
 type TaskActivity struct {
-	ID         int `table_name:"tasks_activity"`
+	TaskID     int `json:"task_id" table_name:"tasks_activity"`
 	ExecutorID int
 	Status     string
 	Deadline   time.Time

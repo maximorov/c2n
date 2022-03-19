@@ -2,22 +2,29 @@ package task
 
 import (
 	"context"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"helpers/app/core"
 	"helpers/app/core/db"
+	"helpers/app/domains/task/activity"
 	"math"
 )
 
 const PI float64 = 3.141592653589793
 
 func NewService(connPool db.Conn) *Service {
-	return &Service{repo: NewRepo(connPool)}
+	return &Service{
+		repo:         NewRepo(connPool),
+		repoActivity: activity.NewRepo(connPool),
+	}
 }
 
 type Service struct {
-	repo *Repository
+	repo         *Repository
+	repoActivity *activity.Repository
 }
 
 func (s *Service) CreateTask(ctx context.Context, userId int, x, y float64, text string) (int, error) {
@@ -89,11 +96,30 @@ func (s *Service) CountDistance(loc1, loc2 pgtype.Point) float64 {
 	return dist
 }
 
-func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, area float64) ([]*Task, error) {
+func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, exId int, area float64) ([]*Task, error) {
+	var err error
+	var exclude []*activity.TaskActivity
+	var tasks []*Task
 	var result []*Task
-	tasks, err := s.repo.FindMany(ctx, []string{`id`, `position`}, map[string]interface{}{
-		`status`: `new`,
+
+	exclude, err = s.repoActivity.FindMany(ctx, []string{`task_id`}, map[string]interface{}{
+		`executor_id`: exId,
+		`status`:      `hidden`,
 	})
+	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
+		return nil, err
+	}
+	hiddenTasks := make([]int, 0, len(exclude))
+	for i := range exclude {
+		hiddenTasks = append(hiddenTasks, exclude[i].TaskID)
+	}
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sb := psql.Select([]string{`id`, `position`}...).
+		From(`"` + s.repo.Schema().TableName() + `"`).
+		Where(sq.Eq{`status`: `new`}).
+		Where(sq.NotEq{`id`: hiddenTasks})
+	err = core.FindManySB(ctx, s.repo.Conn(), sb, &tasks)
 	if err != nil {
 		return nil, err
 	}

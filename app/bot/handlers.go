@@ -239,18 +239,13 @@ func setContactsFotUser(ctx context.Context, update *tgbotapi.Update, userID int
 }
 
 func (s *MessageHandler) setLocationFotUser(ctx context.Context, update *tgbotapi.Update, userID int) error {
-	ex, err := s.ExecutorService.GetOneByUserID(ctx, userID)
-	if err != nil {
-		zap.S().Error(err)
-		return err
-	}
 	point := db.CreatePoint(update.Message.Location.Latitude, update.Message.Location.Longitude)
 
-	_, err = s.ExecutorService.UpdateOne(ctx,
+	_, err := s.ExecutorService.UpdateOne(ctx,
 		map[string]interface{}{
 			`position`: point,
 		}, map[string]interface{}{
-			`id`: ex.ID,
+			`id`: userID,
 		})
 	if err != nil {
 		zap.S().Error(err)

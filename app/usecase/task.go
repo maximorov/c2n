@@ -3,8 +3,10 @@ package usecase
 import (
 	"context"
 	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/user/soc_net"
@@ -110,4 +112,20 @@ func (s *TaskUseCase) GetSocUserByTask(ctx context.Context, taskId int) (*soc_ne
 	}
 
 	return socNetUser, nil
+}
+
+func (s *TaskUseCase) GetExecutorUndoneTasks(ctx context.Context, userId int) ([]*task.Task, error) {
+	var tasks []*task.Task
+
+	tName := s.taskRepo.Schema().TableName()
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sb := psql.Select([]string{`id`, `t.status`, `text`}...).
+		From(`"`+tName+`" as t`).
+		InnerJoin(`"tasks_activity" as ta ON t.id = ta.task_id`).
+		Where(`ta.executor_id = ?`, userId).
+		Where(`ta.status 'taken'`)
+
+	err := core.FindManySB(ctx, s.taskRepo.Conn(), sb, &tasks)
+
+	return tasks, err
 }
