@@ -22,12 +22,12 @@ func NewRepo(c db.Conn) *Repository {
 	}
 }
 
-func (s *Repository) CreateOne(ctx context.Context, entity map[string]interface{}) (retId int, err error) {
+func (s *Repository) CreateOne(ctx context.Context, entity map[string]interface{}) error {
 	columns, vals := core.EntityToColumns(entity)
 
-	err = core.CreateOne(ctx, s.Conn(), s.Schema().TableName(), columns, vals, &retId)
+	err := core.CreateOne(ctx, s.Conn(), s.Schema().TableName(), columns, vals, nil)
 
-	return
+	return err
 }
 
 func (s *Repository) UpdateOne(ctx context.Context, entity map[string]interface{}, cond map[string]interface{}) (int, error) {

@@ -19,7 +19,7 @@ type AfterExecutorLocationSetHandler struct {
 
 func (s *AfterExecutorLocationSetHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
-	_, err := s.registerExecutor(ctx, u, usr.ID)
+	err := s.registerExecutor(ctx, u, usr.ID)
 	if err != nil {
 		zap.S().Error(err)
 	}
@@ -33,22 +33,22 @@ func (s *AfterExecutorLocationSetHandler) Handle(ctx context.Context, u *tgbotap
 	s.handler.Ans(msg)
 }
 
-func (s *AfterExecutorLocationSetHandler) registerExecutor(ctx context.Context, u *tgbotapi.Update, userID int) (int, error) {
+func (s *AfterExecutorLocationSetHandler) registerExecutor(ctx context.Context, u *tgbotapi.Update, userID int) error {
 	su := s.handler.ExecutorService
-	ex, err := su.GetOneByUserID(ctx, userID)
+	_, err := su.GetOneByUserID(ctx, userID)
 	if err != nil {
 		if errors.As(err, &pgx.ErrNoRows) {
 			pos := db.CreatePoint(u.Message.Location.Latitude, u.Message.Location.Longitude)
-			userExecutorID, err := su.CreateOne(ctx, userID, 0, "", &pos)
+			err = su.CreateOne(ctx, userID, 1000, "", &pos)
 			if err != nil {
 				zap.S().Error(err)
 			}
 
-			return userExecutorID, nil
+			return nil
 		}
 	} else {
 		// TODO: update position
 	}
 
-	return ex.UserId, err
+	return err
 }

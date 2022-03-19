@@ -22,9 +22,10 @@ type SetRadiusHandler struct {
 
 func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
-	e, err := s.handler.ExecutorRepo.FindOne(ctx, []string{`user_id`, `position`, `area`}, map[string]interface{}{
-		`user_id`: usr.ID,
-	})
+	e, err := s.handler.ExecutorRepo.FindOne(ctx, []string{`user_id`, `position`, `area`},
+		map[string]interface{}{
+			`user_id`: usr.ID,
+		})
 	if err != nil {
 		zap.S().Error(err)
 		return
@@ -34,7 +35,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		zap.S().Error(err)
 	}
 
-	tasks, err := s.handler.TaskService.FindTasksInRadius(ctx, e.Position, e.UserId, float64(e.Area))
+	tasks, err := s.handler.TaskService.FindTasksInRadius(ctx, e.Position, usr.ID, float64(e.Area))
 	if len(tasks) == 0 {
 		// no tasks in area
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)

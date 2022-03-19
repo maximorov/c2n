@@ -14,15 +14,15 @@ type Service struct {
 	repo *Repository
 }
 
-func (s *Service) CreateOne(ctx context.Context, userId, area int, city string, pos *pgtype.Point) (int, error) {
-	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
+func (s *Service) CreateOne(ctx context.Context, userId, area int, city string, pos *pgtype.Point) error {
+	err := s.repo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:  userId,
 		`area`:     area,
 		`city`:     city,
 		`position`: pos,
 	})
 
-	return id, err
+	return err
 }
 
 func (s *Service) UpdateOne(ctx context.Context, entity map[string]interface{}, cond map[string]interface{}) (int, error) {
@@ -40,7 +40,7 @@ func (s *Service) SetSubscribeInfo(ctx context.Context, userID int, sub bool) (i
 }
 
 func (s *Service) GetOneByUserID(ctx context.Context, userId int) (*UserExecutor, error) {
-	user, err := s.repo.FindOne(ctx, []string{`id`, `area`, `city`}, map[string]interface{}{
+	user, err := s.repo.FindOne(ctx, []string{`user_id`, `area`, `city`}, map[string]interface{}{
 		`user_id`: userId,
 	})
 

@@ -123,7 +123,7 @@ func (s *TaskUseCase) GetExecutorUndoneTasks(ctx context.Context, userId int) ([
 		From(`"`+tName+`" as t`).
 		InnerJoin(`"tasks_activity" as ta ON t.id = ta.task_id`).
 		Where(`ta.executor_id = ?`, userId).
-		Where(`ta.status 'taken'`)
+		Where(`ta.status = 'taken'`)
 
 	err := core.FindManySB(ctx, s.taskRepo.Conn(), sb, &tasks)
 
