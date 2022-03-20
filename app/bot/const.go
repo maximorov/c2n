@@ -3,7 +3,7 @@ package bot
 const (
 	CommandTakeLocationManual = "Уведіть координати вручу."
 	CommandGetContact         = "Надати контакти"
-	CommandGetLocation        = "Надати геолокацію"
+	CommandGetLocation        = Symbanchor + " Надати геолокацію"
 	CommandsWillExecute       = SymbOk + "Допоможу"
 	CommandsRefuseForMe       = SymbHide + "Не показувати"
 
@@ -16,4 +16,9 @@ const (
 	SymbOk          = `👌`
 	SymbBegining    = `🌽`
 	SymbLoudspeaker = `📢`
+	SymbCreate      = `📝`
+	SymbTask        = `📜`
+	Symbanchor      = `⚓`
+	SymbInfo        = `ℹ️`
+	SymbClip        = `📎`
 )

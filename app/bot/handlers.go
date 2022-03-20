@@ -207,7 +207,7 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	return false
 }
 
-func (s *MessageHandler) Ans(msg tgbotapi.MessageConfig) {
+func (s *MessageHandler) Ans(msg tgbotapi.Chattable) {
 	_, err := s.BotApi.Send(msg)
 	if err != nil {
 		zap.S().Error(err)

@@ -66,7 +66,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 			pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
 		}
 
-		taskText := `Завдання #` + tId + "\n"
+		taskText := SymbTask + ` Завдання #` + tId + "\n"
 		taskText = taskText + `Створено ` + pastText + "\n"
 		taskText = taskText + t.Text
 		msg.Text = taskText

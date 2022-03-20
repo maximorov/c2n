@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"helpers/app/core"
+	"helpers/app/domains/task"
 	"helpers/app/domains/user"
 	"strconv"
 )
@@ -34,9 +35,14 @@ func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 
 	if len(tasks) > 0 {
 		for _, tsk := range tasks {
+			statusTranslate, ok := task.TranslatedStatuses[tsk.Status]
+			if !ok {
+				zap.S().Error(`status not translated`)
+				statusTranslate = tsk.Status
+			}
 			kb.InlineKeyboard[0][0].CallbackData = core.StrP(CancelCallback + `:` + strconv.Itoa(tsk.ID))
 			msg.ReplyMarkup = kb
-			msg.Text = fmt.Sprintf("Task #%d\n%s\n%s", tsk.ID, tsk.Text, tsk.Status)
+			msg.Text = fmt.Sprintf(SymbTask+" Завдання #%d\n%s\n- %s", tsk.ID, tsk.Text, statusTranslate)
 			s.handler.Ans(msg)
 		}
 	} else {

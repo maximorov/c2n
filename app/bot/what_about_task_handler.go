@@ -5,7 +5,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const CommandFiilTaskText = "Укажіть завдання у форматі: ім'я, опис завдання, як з вами зв'язатися."
+const CommandFiilTaskText = "Укажіть завдання у форматі: \nім'я\nопис завдання\nяк з вами зв'язатися."
 
 type WhatFillTaskText struct {
 	handler  *MessageHandler

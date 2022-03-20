@@ -40,7 +40,7 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 		// msg.ReplyToMessageID = u.Message.MessageID
 		msg.ReplyMarkup = ExecutorTasksListKeyboard
-		msg.Text = "Task " + tId + "\n" + t.Text
+		msg.Text = SymbTask + ` Завдання #` + tId + "\n" + t.Text
 		_, err := s.handler.BotApi.Send(msg)
 		if err != nil {
 			zap.S().Error(err)

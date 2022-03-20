@@ -12,9 +12,11 @@ type TakeNewTaskHandlerHandler struct {
 
 func (s *TakeNewTaskHandlerHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	//msg.ReplyToMessageID = u.Message.MessageID
+
 	msg.ReplyMarkup = s.keyboard
-	//msg.Text = SetExecutorLocation
-	s.handler.sendVideoHowSendLocation(u.Message.Chat.ID)
+	msg.Text = `Поділіться будь-ласка локацією кнопкою ` + "\n\n[" + CommandGetLocation + "]\n\n" + ` або якщо ви хочете обрати іншу локацію, оберить локацию за допомогою кнопки ` + SymbClip + `, як вказано на відео нижче`
+	msg.Text = msg.Text + "\n...відео завантажується"
+
 	s.handler.Ans(msg)
+	s.handler.sendVideoHowSendLocation(u.Message.Chat.ID, s.keyboard)
 }

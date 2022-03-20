@@ -15,6 +15,16 @@ const StatusExpired = `expired`
 const StatusCancelled = `cancelled`
 const StatusRefused = `refused`
 
+var TranslatedStatuses = map[string]string{
+	StatusRaw:        `не закінчено`,
+	StatusNew:        `нове`,
+	StatusInProgress: `виконується`,
+	StatusDone:       `виконано`,
+	StatusExpired:    `не актуально`,
+	StatusCancelled:  `Видалено`,
+	StatusRefused:    `заблоковано`,
+}
+
 var AllowedStatuses = map[string]map[string]bool{
 	StatusRaw: {
 		StatusNew:     true,
