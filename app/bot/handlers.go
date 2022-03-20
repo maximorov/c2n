@@ -47,6 +47,7 @@ type MessageHandler struct {
 	ExecutorRepo    *executor.Repository
 	ExecutorService *executor.Service
 	TaskUseCase     *usecase.TaskUseCase
+	role            string
 }
 
 func (s *MessageHandler) Init() {
@@ -67,9 +68,6 @@ func (s *MessageHandler) Init() {
 		CommandCreateNewTask: &CreateTaskHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButtonLocation(CommandGetLocation), // collect location
-			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandTakeLocationManual),
 			),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
@@ -141,9 +139,9 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	}
 	if u.Message.Location != nil {
 		msg.Text = ""
-		switch u.Message.ReplyToMessage.Text {
+		switch s.role {
 		//case CommandCreateNewTask:
-		case CommandNeedCollectLocation:
+		case "needy":
 			err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, u.Message.Location.Latitude, u.Message.Location.Longitude)
 			if err != nil {
 				zap.S().Error(err)
@@ -152,7 +150,7 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 			msg.Text = CommandFiilTaskText
 			s.Ans(msg)
 			return true
-		case SetExecutorLocation:
+		case "executor":
 			s.handlers[SetExecutorLocation].Handle(ctx, u)
 			return true
 		}

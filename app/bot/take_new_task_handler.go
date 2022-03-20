@@ -14,6 +14,7 @@ func (s *TakeNewTaskHandlerHandler) Handle(ctx context.Context, u *tgbotapi.Upda
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	//msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
-	msg.Text = SetExecutorLocation
+	//msg.Text = SetExecutorLocation
+	//s.handler.sendVideoHowSendLocation(u.Message.Chat.ID)
 	s.handler.Ans(msg)
 }

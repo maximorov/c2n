@@ -18,7 +18,8 @@ func (s *CreateTaskHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
-	msg.Text = CommandNeedCollectLocation
+
+	s.handler.sendVideoHowSendLocation(u.Message.Chat.ID)
 
 	_, err := s.handler.BotApi.Send(msg)
 	if err != nil {

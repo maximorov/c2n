@@ -21,6 +21,7 @@ func (s *NeedHelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg.Text = `What exactly you want`
 	msg.ReplyMarkup = s.keyboard
 	//}
+	s.handler.role = "needy"
 
 	_, err := s.handler.BotApi.Send(msg)
 	if err != nil {
