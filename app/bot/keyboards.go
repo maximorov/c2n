@@ -7,8 +7,10 @@ import (
 var (
 	HeadKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandHelp),
 			tgbotapi.NewKeyboardButton(CommandNeedHelp),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandHelp),
 		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandInformation),
@@ -69,14 +71,14 @@ var (
 	)
 	TasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(SymbWillDo+` `+CommandsWillExecute, ``),
-			tgbotapi.NewInlineKeyboardButtonData(SymbHide+` `+CommandsRefuseForMe, ``),
+			tgbotapi.NewInlineKeyboardButtonData(CommandsWillExecute, ``),
+			tgbotapi.NewInlineKeyboardButtonData(CommandsRefuseForMe, ``),
 		),
 	)
 	ExecutorTasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(SymbAccept+` Виконав`, ``),
-			tgbotapi.NewInlineKeyboardButtonData(SymbRefuse+` Відмовляюсь`, ``),
+			tgbotapi.NewInlineKeyboardButtonData(SymbAccept+` Виконано`, ``),
+			tgbotapi.NewInlineKeyboardButtonData(SymbRefuse+` Відмовитися`, ``),
 		),
 	)
 	ReopenTaskKeyboard = tgbotapi.NewInlineKeyboardMarkup(

@@ -5,10 +5,10 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const CommandHelp = "Допомогти"
-const CommandTakeNewOrListMy = `Look my tasks, or take new one`
-const CommandMyActiveTasks = "My active tasks"
-const CommandTakeNewTask = "Take new task"
+const CommandHelp = SymbStrength + " Допомогти"
+const CommandTakeNewOrListMy = `Переглянути завдання в роботі, або взяти нове.`
+const CommandMyActiveTasks = "Завдання в роботі"
+const CommandTakeNewTask = "Узяти нове завдання"
 
 type HelpHandler struct {
 	handler  *MessageHandler
@@ -17,7 +17,7 @@ type HelpHandler struct {
 
 func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	msg.ReplyToMessageID = u.Message.MessageID
+	// msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
 	s.handler.role = "executor"
 	msg.Text = CommandTakeNewOrListMy

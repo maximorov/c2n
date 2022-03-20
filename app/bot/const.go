@@ -1,17 +1,19 @@
 package bot
 
 const (
-	CommandNewTask            = "Новий запит"
-	CommandTakeLocationManual = "Введіть координати вручну"
+	CommandTakeLocationManual = "Уведіть координати вручу."
 	CommandGetContact         = "Надати контакти"
-	CommandGetLocation        = "Надати локацію"
-	CommandsWillExecute       = "Виконаю"
-	CommandsRefuseForMe       = "Не показувати"
+	CommandGetLocation        = "Надати геолокацію"
+	CommandsWillExecute       = SymbOk + "Допоможу"
+	CommandsRefuseForMe       = SymbHide + "Не показувати"
 
 	Information = "тут виводиться довідка"
 
-	SymbAccept = `✅`
-	SymbRefuse = `❌`
-	SymbHide   = `🚫`
-	SymbWillDo = `💪`
+	SymbAccept      = `✅`
+	SymbRefuse      = `❌`
+	SymbHide        = `🚫`
+	SymbStrength    = `💪`
+	SymbOk          = `👌`
+	SymbBegining    = `🌽`
+	SymbLoudspeaker = `📢`
 )

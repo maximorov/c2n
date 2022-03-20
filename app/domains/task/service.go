@@ -115,7 +115,7 @@ func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, 
 	}
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	sb := psql.Select([]string{`id`, `position`}...).
+	sb := psql.Select([]string{`id`, `position`, `user_id`, `status`, `text`, `deadline`, `created`, `updated`}...).
 		From(`"` + s.repo.Schema().TableName() + `"`).
 		Where(sq.Eq{`status`: `new`}).
 		Where(sq.NotEq{`id`: hiddenTasks})

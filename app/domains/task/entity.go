@@ -45,14 +45,14 @@ var AllowedStatuses = map[string]map[string]bool{
 }
 
 type Task struct {
-	ID        int `table_name:"tasks"`
-	UserID    int
-	Position  pgtype.Point
-	Status    string
-	Text      string
-	Deadline  time.Time
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+	ID       int `table_name:"tasks"`
+	UserID   int
+	Position pgtype.Point
+	Status   string
+	Text     string
+	Deadline time.Time
+	Created  time.Time `json:"created,omitempty"`
+	Updated  time.Time `json:"updated,omitempty"`
 }
 
 func (s *Task) IsEntity() {}

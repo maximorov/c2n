@@ -5,7 +5,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const CommandNoTasks = "No tasks yet. Try another area"
+const CommandNoTasks = "Немає завдань в цьому радіусі. Змінити радіус пошуку."
 
 type NoTasksHandler struct {
 	handler  *MessageHandler
@@ -14,7 +14,7 @@ type NoTasksHandler struct {
 
 func (s *NoTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	msg.ReplyToMessageID = u.Message.MessageID
+	// msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
 	msg.Text = CommandNeedCollectLocation
 

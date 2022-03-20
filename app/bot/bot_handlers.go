@@ -16,10 +16,10 @@ import (
 	"strings"
 )
 
-const ReopenText = `Reopen`
+const ReopenText = `Перевідкрити`
 const ReopenCallback = `reopen`
 
-const CancelText = `Cancel`
+const CancelText = `Видалити завданняЗадача закрита`
 const CancelCallback = `cancel`
 
 type CallbackHandler struct {
@@ -63,7 +63,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		if err != nil {
 			zap.S().Error(err)
 		}
-		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Завдання треба виконати за добу`)
+		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Це завдання потрібно виконати за добу.`)
 		s.Ans(msg)
 		s.informNeedy(ctx, taskId, `taken`)
 	case `hide`:
@@ -71,7 +71,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		if err != nil {
 			zap.S().Error(err)
 		}
-		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Це завдання візьме хтось інший`)
+		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Це завдання візьме інший волонтер.`)
 		s.Ans(msg)
 	case `complete`:
 		err := s.TaskActivityService.UpdateActivity(ctx, usr.ID, taskId, `completed`)
@@ -86,7 +86,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		if err != nil {
 			zap.S().Error(err)
 		}
-		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Візьме хтось інший, чи ні`)
+		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Ви відмовилися від виконання цього завдання, відтепер воно доступне для іншого волонтера.`)
 		s.Ans(msg)
 		s.informNeedy(ctx, taskId, `refuse`)
 	case `reopen`:
@@ -96,7 +96,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Виконався попереджено`)
 			s.Ans(msg)
 		} else {
-			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Задача закрита`)
+			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Завдання видалено.`)
 			s.Ans(msg)
 		}
 	default:
@@ -127,21 +127,21 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 
 	switch status {
 	case `refuse`:
-		msg.Text = `Волонтер отказался от вашей задачи. Ждем другого`
+		msg.Text = `На жаль, цей волонтер відмовився від виконання цього завдання. Триває пошук іншого волонтера.`
 		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusNew)
 		if err != nil {
 			zap.S().Error(err)
 			return
 		}
 	case `complete`:
-		msg.Text = `Волонтер отметил вашу задачу как выполнено. Если это не так - нажмите ` + ReopenText
+		msg.Text = `Це завдання позначено виконаним. Якщо це не так, натисніть на кнопку ` + ReopenText + `.`
 		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusDone)
 		if err != nil {
 			zap.S().Error(err)
 			return
 		}
 	case `taken`:
-		msg.Text = `Волонтер вляз вашу задачу в работу. Если в течении нескольких часов с вами не связались, нажмите ` + ReopenText
+		msg.Text = `Це завдання у процесі виконання. Якщо протягом декількох годин ви не отримали повідомлення від волонтера, натисніть на кнопку ` + ReopenText + `.`
 		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusInProgress)
 		if err != nil {
 			zap.S().Error(err)

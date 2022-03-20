@@ -10,7 +10,7 @@ import (
 	"helpers/app/domains/user"
 )
 
-const SetExecutorLocation = `Зазначте де ви знаходитесь`
+const SetExecutorLocation = `Укажіть ваше місце перебування`
 
 type AfterExecutorLocationSetHandler struct {
 	handler  *MessageHandler
@@ -26,10 +26,10 @@ func (s *AfterExecutorLocationSetHandler) Handle(ctx context.Context, u *tgbotap
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	msg.ReplyMarkup = s.keyboard
-	msg.Text = `Вы подписаны на информирование`
+	msg.Text = `Ви підписані на розсилку запросів у вашому районі.`
 	s.handler.Ans(msg)
 
-	msg.Text = "Оберіть територію де ви зможете допомогти"
+	msg.Text = "Оберіть можливий радіус надання допомоги."
 	s.handler.Ans(msg)
 }
 

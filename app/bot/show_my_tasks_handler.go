@@ -12,7 +12,7 @@ import (
 	"strconv"
 )
 
-const CommandMyTasks = `My tasks`
+const CommandMyTasks = `Мої завдання`
 
 type ShowMyTasksHandler struct {
 	handler   *MessageHandler
@@ -40,7 +40,7 @@ func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 			s.handler.Ans(msg)
 		}
 	} else {
-		msg.Text = "You have no tasks"
+		msg.Text = "Немає завдань про допомогу."
 		msg.ReplyMarkup = s.keyboard
 		s.handler.Ans(msg)
 	}

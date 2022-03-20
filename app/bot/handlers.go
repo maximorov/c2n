@@ -58,6 +58,13 @@ func (s *MessageHandler) Init() {
 
 		CommandNeedHelp: &NeedHelpHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandCreateNewTask),
+			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandToMain),
+			),
+		), tgbotapi.NewReplyKeyboard(
+			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandMyTasks),
 				tgbotapi.NewKeyboardButton(CommandCreateNewTask),
 			),
@@ -157,10 +164,6 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	}
 
 	switch u.Message.Text {
-	case CommandNewTask:
-		msg.ReplyMarkup = GetContactsKeyboard
-		msg.Text = "Поділіться будь-ласка контактами, щоб з вами могли звʼязатись"
-		//TODO: нормально пофиксить эту багу..
 	default:
 		// geolocation coordinates
 		if coordsRegexp.Match([]byte(u.Message.Text)) { // someone enters coordinates manually
@@ -194,8 +197,8 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		if err != nil {
 			zap.S().Error(err)
 		}
-		msg.Text = "Your task #" + strconv.Itoa(tsk.ID) + "\n" +
-			" свами должны связаться в течении " + strconv.Itoa(task.TaskDeadline) + " часов"
+		msg.Text = "Завдання #" + strconv.Itoa(tsk.ID) + "\n" +
+			"Очікуйте повідомлення протягом " + strconv.Itoa(task.TaskDeadline) + " годин"
 		msg.ReplyMarkup = ToMainKeyboard
 	}
 

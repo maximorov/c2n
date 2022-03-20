@@ -6,7 +6,7 @@ import (
 )
 
 const CommandStart = "/start"
-const CommandToMain = "К початку"
+const CommandToMain = SymbBegining + " До початку"
 
 type StartHandler struct {
 	handler  *MessageHandler
@@ -15,7 +15,7 @@ type StartHandler struct {
 
 func (s *StartHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	msg.ReplyToMessageID = u.Message.MessageID
+	// msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
 
 	s.handler.Ans(msg)

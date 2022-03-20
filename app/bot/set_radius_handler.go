@@ -7,6 +7,7 @@ import (
 	"helpers/app/core"
 	"helpers/app/domains/user"
 	"strconv"
+	"time"
 )
 
 const CommandRadius1 = "Радіус 1 км"
@@ -39,7 +40,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	if len(tasks) == 0 {
 		// no tasks in area
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-		msg.ReplyToMessageID = u.Message.MessageID
+		// msg.ReplyToMessageID = u.Message.MessageID
 		msg.ReplyMarkup = s.keyboard
 		msg.Text = CommandNoTasks
 
@@ -55,7 +56,21 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
 		TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
 		msg.ReplyMarkup = TasksListKeyboard
-		msg.Text = "Task " + tId + "\n" + t.Text
+
+		past := time.Since(t.Created)
+		hoursAgo := past.Hours()
+		var pastText string
+		if hoursAgo < 1 {
+			pastText = `менш ніж годину тому`
+		} else {
+			pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
+		}
+
+		taskText := `Завдання #` + tId + "\n"
+		taskText = taskText + `Створено ` + pastText + "\n"
+		taskText = taskText + t.Text
+		msg.Text = taskText
+
 		s.handler.Ans(msg)
 	}
 

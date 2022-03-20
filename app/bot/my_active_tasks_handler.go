@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-const NoUndoneTasksMessage = `No undone tasks`
+const NoUndoneTasksMessage = `Немає завдань у роботі.`
 
 type MyActiveTasksHandler struct {
 	handler  *MessageHandler
@@ -26,7 +26,7 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	}
 	if len(tasks) == 0 {
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-		msg.ReplyToMessageID = u.Message.MessageID
+		// msg.ReplyToMessageID = u.Message.MessageID
 		msg.ReplyMarkup = s.keyboard
 		msg.Text = NoUndoneTasksMessage
 		s.handler.Ans(msg)
@@ -38,7 +38,7 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		ExecutorTasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`complete:` + tId)
 		ExecutorTasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`refuse:` + tId)
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-		msg.ReplyToMessageID = u.Message.MessageID
+		// msg.ReplyToMessageID = u.Message.MessageID
 		msg.ReplyMarkup = ExecutorTasksListKeyboard
 		msg.Text = "Task " + tId + "\n" + t.Text
 		_, err := s.handler.BotApi.Send(msg)

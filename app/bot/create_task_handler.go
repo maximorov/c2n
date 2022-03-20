@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const CommandCreateNewTask = `Create new task`
+const CommandCreateNewTask = `Створити завдання`
 const CommandNeedCollectLocation = `We need to collect info about you`
 
 type CreateTaskHandler struct {
@@ -16,7 +16,7 @@ type CreateTaskHandler struct {
 
 func (s *CreateTaskHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	msg.ReplyToMessageID = u.Message.MessageID
+	// msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
 
 	s.handler.sendVideoHowSendLocation(u.Message.Chat.ID)
