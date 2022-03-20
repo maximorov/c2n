@@ -54,7 +54,7 @@ func (s *MessageHandler) Init() {
 	s.handlers = map[string]Handler{
 		CommandStart:       &StartHandler{s, HeadKeyboard},
 		CommandToMain:      &StartHandler{s, HeadKeyboard},
-		CommandInformation: &StartHandler{s, HeadKeyboard},
+		CommandInformation: &AboutHandler{s, AfterHeadKeyboard},
 
 		CommandNeedHelp: &NeedHelpHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
@@ -116,8 +116,8 @@ func (s *MessageHandler) Init() {
 		CommandRadius5:      &SetRadiusHandler{s, SetAreaKeyboard, 5000},
 		CommandRadius10:     &SetRadiusHandler{s, SetAreaKeyboard, 10000},
 		CommandNoTasks:      &NoTasksHandler{s, SetAreaKeyboard},
-		CommandSubscribe:    &SubscribeHandler{s, HeadKeyboard, true},
-		CommandUnsubscribe:  &SubscribeHandler{s, HeadKeyboard, false},
+		CommandSubscribe:    &SubscribeHandler{s, AfterHeadKeyboard, true},
+		CommandUnsubscribe:  &SubscribeHandler{s, AfterHeadKeyboard, false},
 	}
 }
 
@@ -185,11 +185,8 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		// any text determines like text of task
 		tsk, err := s.TaskService.GetUsersRawTask(ctx, usr.ID)
 		if err != nil {
-			msg.Text += "Безсмыслица какая-то. Жми на кнопки и не балуйся"
-			_, err = s.BotApi.Send(msg)
-			if err != nil {
-				zap.S().Error(err)
-			}
+			msg.Text = fmt.Sprintf(`"%s" - Команда не зрозуміла. Спробуйте іншу `, msg.Text)
+			s.Ans(msg)
 			return true
 		}
 		s := usecase.NewTaskUseCase(db.GetPool())
@@ -197,8 +194,7 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		if err != nil {
 			zap.S().Error(err)
 		}
-		msg.Text = "Завдання #" + strconv.Itoa(tsk.ID) + "\n" +
-			"Очікуйте повідомлення протягом " + strconv.Itoa(task.TaskDeadline) + " годин"
+		msg.Text = fmt.Sprintf("Завдання #%d\nОчікуйте повідомлення протягом %d годин", tsk.ID, task.TaskDeadline)
 		msg.ReplyMarkup = ToMainKeyboard
 	}
 
