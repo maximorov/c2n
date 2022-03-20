@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"helpers/app/core"
@@ -49,7 +50,6 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	}
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
-	msg.ReplyMarkup = s.keyboard
 
 	for _, t := range tasks {
 		tId := strconv.Itoa(t.ID)
@@ -57,24 +57,27 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
 		msg.ReplyMarkup = TasksListKeyboard
 
-		past := time.Since(t.Created)
-		hoursAgo := past.Hours()
-		var pastText string
-		if hoursAgo < 1 {
-			pastText = `менш ніж годину тому`
-		} else {
-			pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
-		}
-
-		taskText := SymbTask + ` Завдання #` + tId + "\n"
-		taskText = taskText + `Створено ` + pastText + "\n"
-		taskText = taskText + t.Text
-		msg.Text = taskText
+		msg.Text = prepareTaskText(tId, t.Text, t.Created)
 
 		s.handler.Ans(msg)
 	}
 
 	return
+}
+
+func prepareTaskText(taskId, taskText string, taskCreated time.Time) string {
+	past := time.Since(taskCreated)
+	hoursAgo := past.Hours()
+	var pastText string
+	if hoursAgo < 1 {
+		pastText = `менш ніж годину тому`
+	} else {
+		pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
+	}
+
+	result := fmt.Sprintf("%s Завдання #%s\nСтворено %s\n%s", SymbTask, taskId, pastText, taskText)
+
+	return result
 }
 
 func (s *SetRadiusHandler) setAreaForUser(ctx context.Context, userID, area int) error {
