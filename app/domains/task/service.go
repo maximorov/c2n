@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"helpers/app/bootstrap"
 	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task/activity"
@@ -119,6 +120,12 @@ func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, 
 		From(`"` + s.repo.Schema().TableName() + `"`).
 		Where(sq.Eq{`status`: `new`}).
 		Where(sq.NotEq{`id`: hiddenTasks})
+
+	// exclude tasks of executor
+	if !bootstrap.Cnf.Debug {
+		sb.Where(sq.NotEq{`user_id`: exId})
+	}
+
 	err = core.FindManySB(ctx, s.repo.Conn(), sb, &tasks)
 	if err != nil {
 		return nil, err

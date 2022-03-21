@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	Env           string
+	Debug         bool
 	TelegramToken string
 	DB            ConfigDb
 }
@@ -68,8 +69,15 @@ func InitEnv(filesDir string) {
 }
 
 func InitConfig() {
+	var debug bool
+	switch os.Getenv(`DEBUG`) {
+	case `true`:
+		debug = true
+	}
+
 	Cnf = Config{
 		Env:           os.Getenv(`ENV`),
+		Debug:         debug,
 		TelegramToken: os.Getenv(`TELEGRAM_TOKEN`),
 		DB: ConfigDb{
 			URL:                  os.Getenv(`DB_URL`),

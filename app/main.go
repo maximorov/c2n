@@ -25,9 +25,10 @@ func main() {
 		log.Panic(err)
 	}
 
-	bot.Debug = false
-
-	//log.Printf("Authorized on account %s", bot.Self.UserName)
+	bot.Debug = bootstrap.Cnf.Debug
+	if bootstrap.Cnf.Debug {
+		log.Printf("Authorized on account %s", bot.Self.UserName)
+	}
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
