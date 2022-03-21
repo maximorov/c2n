@@ -135,7 +135,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 
 			go func(ctx context.Context) {
 				executors, err := exRepo.FindMany(ctx,
-					[]string{`id`, `user_id`, `position`, `area`, `city`, `inform`},
+					[]string{`user_id`, `position`, `area`, `city`, `inform`},
 					map[string]interface{}{})
 				if err != nil {
 					zap.S().Error(err)
