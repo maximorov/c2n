@@ -6,7 +6,7 @@ import (
 	"helpers/app/domains/user"
 )
 
-const CommandNeedHelp = SymbLoudspeaker + " Попросити про допомогу"
+const CommandNeedHelp = SymbSOS + " Попросити про допомогу"
 
 type NeedHelpHandler struct {
 	handler           *MessageHandler

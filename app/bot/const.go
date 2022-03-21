@@ -9,16 +9,19 @@ const (
 
 	Information = "тут виводиться довідка"
 
-	SymbAccept      = `✅`
-	SymbRefuse      = `❌`
-	SymbHide        = `🚫`
-	SymbStrength    = `💪`
-	SymbOk          = `👌`
-	SymbBegining    = `🌽`
-	SymbLoudspeaker = `📢`
-	SymbCreate      = `📝`
-	SymbTask        = `📜`
-	Symbanchor      = `⚓`
-	SymbInfo        = `ℹ️`
-	SymbClip        = `📎`
+	SymbSmile    = `😀`
+	SymbAccept   = `✅`
+	SymbRefuse   = `❌`
+	SymbHide     = `🚫`
+	SymbStrength = `💪`
+	SymbOk       = `👌`
+	SymbBegining = `🌽`
+	SymbSOS      = `🆘`
+	SymbCreate   = `📝`
+	SymbTask     = `📜`
+	Symbanchor   = `⚓`
+	SymbInfo     = `ℹ️`
+	SymbClip     = `📎`
+	SymbWarning  = `⚠️`
+	SymbHello    = `👋`
 )
