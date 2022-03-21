@@ -77,6 +77,23 @@ func (s *Service) IsUserHaveUndoneTasks(ctx context.Context, userId int) bool {
 	return true
 }
 
+func (s *Service) IsExecutorHaveUndoneTasks(ctx context.Context, userId int) bool {
+	_, err := s.repoActivity.FindOne(ctx, []string{
+		`id`,
+	}, map[string]interface{}{
+		`executor_id`: userId,
+		`status`:      []string{`taken`},
+	})
+	if err != nil {
+		if !errors.As(err, &pgx.ErrNoRows) {
+			zap.S().Error(err)
+		}
+		return false
+	}
+
+	return true
+}
+
 func (s *Service) CountDistance(loc1, loc2 pgtype.Point) float64 {
 	radlat1 := float64(PI * loc1.P.X / 180)
 	radlat2 := float64(PI * loc2.P.X / 180)

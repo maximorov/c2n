@@ -141,13 +141,13 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 					zap.S().Error(err)
 				}
 
-				for _, executor := range executors {
-					if executor.Inform == false {
+				for _, ex := range executors {
+					if ex.Inform == false {
 						continue
 					}
 
 					s := task.NewService(connPool)
-					tasks, err := s.FindTasksInRadius(ctx, executor.Position, executor.UserId, float64(executor.Area))
+					tasks, err := s.FindTasksInRadius(ctx, ex.Position, ex.UserId, float64(ex.Area))
 					if err != nil {
 						zap.S().Error(err)
 					}
@@ -156,7 +156,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 						continue
 					}
 					sSoc := soc_net.NewService(connPool)
-					userSocNet, err := sSoc.GetOneByUserID(ctx, executor.UserId)
+					userSocNet, err := sSoc.GetOneByUserID(ctx, ex.UserId)
 					if err != nil {
 						zap.S().Error(err)
 					}
@@ -191,11 +191,8 @@ func setExpired(ctx context.Context, taskRepo *task.Repository) {
 			n := time.Now()
 
 			if n.Minute() != 0 { //every hour
-				zap.S().Info("Not a time for expire tasks")
 				continue
 			}
-
-			zap.S().Info("Time for expire tasks!")
 
 			go func(ctx context.Context) {
 				tasks, err := taskRepo.FindMany(ctx,

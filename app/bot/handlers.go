@@ -92,6 +92,13 @@ func (s *MessageHandler) Init() {
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
+		), tgbotapi.NewReplyKeyboard(
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandTakeNewTask),
+			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandToMain),
+			),
 		)},
 		CommandTakeNewTask: &TakeNewTaskHandlerHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
