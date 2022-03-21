@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
@@ -9,6 +10,7 @@ import (
 	"helpers/app/core"
 	"helpers/app/domains/user"
 	"strconv"
+	"time"
 )
 
 const NoUndoneTasksMessage = `Немає завдань у роботі.`
@@ -35,9 +37,19 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		tId := strconv.Itoa(t.ID)
 		ExecutorTasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`complete:` + tId)
 		ExecutorTasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`refuse:` + tId)
+
+		past := time.Since(t.Created)
+		hoursAgo := past.Hours()
+		var pastText string
+		if hoursAgo < 1 {
+			pastText = `менш ніж годину тому`
+		} else {
+			pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
+		}
+
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 		msg.ReplyMarkup = ExecutorTasksListKeyboard
-		msg.Text = SymbTask + ` Завдання #` + tId + "\n\n" + t.Text
+		msg.Text = fmt.Sprintf("%s Завдання #%s\n\n%s\n\n%s", SymbTask, tId, t.Text, pastText)
 		s.handler.Ans(msg)
 	}
 }

@@ -18,20 +18,20 @@ const CantUpdateStatus = `Can't update task status`
 
 func NewTaskUseCase(connPool db.Conn) *TaskUseCase {
 	return &TaskUseCase{
-		taskRepo:         task.NewRepo(connPool),
+		TaskRepo:         task.NewRepo(connPool),
 		taskActivityRepo: activity.NewRepo(connPool),
 		socNetRepo:       soc_net.NewRepo(connPool),
 	}
 }
 
 type TaskUseCase struct {
-	taskRepo         *task.Repository
+	TaskRepo         *task.Repository
 	taskActivityRepo *activity.Repository
 	socNetRepo       *soc_net.Repository
 }
 
 func (s *TaskUseCase) GetTasksForUser(ctx context.Context, circle interface{}) ([]*task.Task, error) {
-	res, err := s.taskRepo.FindMany(ctx, []string{
+	res, err := s.TaskRepo.FindMany(ctx, []string{
 		`id`,
 		`user_id`,
 		`position`,
@@ -46,7 +46,7 @@ func (s *TaskUseCase) GetTasksForUser(ctx context.Context, circle interface{}) (
 }
 
 func (s *TaskUseCase) UpdateTaskStatus(ctx context.Context, taskId int, status string) error {
-	currentTask, err := s.taskRepo.FindOne(
+	currentTask, err := s.TaskRepo.FindOne(
 		ctx,
 		[]string{`status`},
 		map[string]interface{}{`id`: taskId})
@@ -66,7 +66,7 @@ func (s *TaskUseCase) UpdateTaskStatus(ctx context.Context, taskId int, status s
 		return errors.New(CantUpdateStatus)
 	}
 
-	_, err = s.taskRepo.UpdateOne(ctx, map[string]interface{}{
+	_, err = s.TaskRepo.UpdateOne(ctx, map[string]interface{}{
 		`status`: status,
 	}, map[string]interface{}{
 		`id`: taskId,
@@ -77,7 +77,7 @@ func (s *TaskUseCase) UpdateTaskStatus(ctx context.Context, taskId int, status s
 
 func (s *TaskUseCase) CreateRawTask(ctx context.Context, userId int, x, y float64) error {
 	p := db.CreatePoint(x, y)
-	_, err := s.taskRepo.CreateOne(ctx, map[string]interface{}{
+	_, err := s.TaskRepo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:  userId,
 		`text`:     ``,
 		`position`: &p,
@@ -87,7 +87,7 @@ func (s *TaskUseCase) CreateRawTask(ctx context.Context, userId int, x, y float6
 }
 
 func (s *TaskUseCase) UpdateLastRawWithText(ctx context.Context, taskId int, text string) error {
-	_, err := s.taskRepo.UpdateOne(ctx, map[string]interface{}{
+	_, err := s.TaskRepo.UpdateOne(ctx, map[string]interface{}{
 		`text`:   text,
 		`status`: `new`,
 	},
@@ -99,7 +99,7 @@ func (s *TaskUseCase) UpdateLastRawWithText(ctx context.Context, taskId int, tex
 }
 
 func (s *TaskUseCase) GetSocUserByTask(ctx context.Context, taskId int) (*soc_net.UserSocNet, error) {
-	taskUser, err := s.taskRepo.FindOne(
+	taskUser, err := s.TaskRepo.FindOne(
 		ctx,
 		[]string{`user_id`},
 		map[string]interface{}{`id`: taskId})
@@ -144,15 +144,15 @@ func (s *TaskUseCase) GetSocExecutorByTaskActivity(ctx context.Context, taskId i
 func (s *TaskUseCase) GetExecutorUndoneTasks(ctx context.Context, userId int) ([]*task.Task, error) {
 	var tasks []*task.Task
 
-	tName := s.taskRepo.Schema().TableName()
+	tName := s.TaskRepo.Schema().TableName()
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	sb := psql.Select([]string{`id`, `t.status`, `text`}...).
+	sb := psql.Select([]string{`id`, `t.status`, `text`, `t.created`}...).
 		From(`"`+tName+`" as t`).
 		InnerJoin(`"tasks_activity" as ta ON t.id = ta.task_id`).
 		Where(`ta.executor_id = ?`, userId).
 		Where(`ta.status = 'taken'`)
 
-	err := core.FindManySB(ctx, s.taskRepo.Conn(), sb, &tasks)
+	err := core.FindManySB(ctx, s.TaskRepo.Conn(), sb, &tasks)
 
 	return tasks, err
 }

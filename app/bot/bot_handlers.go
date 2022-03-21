@@ -3,6 +3,7 @@ package bot
 import (
 	"context"
 	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
@@ -14,6 +15,7 @@ import (
 	"helpers/app/usecase"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const ReopenText = SymbClapper + ` Перевідкрити`
@@ -29,7 +31,7 @@ type CallbackHandler struct {
 }
 
 func (s *CallbackHandler) AnsDelete(msg tgbotapi.DeleteMessageConfig) {
-	_, err := s.BotApi.Send(msg)
+	_, err := s.BotApi.Request(msg)
 	if err != nil {
 		zap.S().Error(err)
 	}
@@ -64,16 +66,33 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 	action := parsed[0]
 	taskId, _ := strconv.Atoi(parsed[1])
 
+	t, err := s.TaskUseCase.TaskRepo.FindOne(ctx, []string{`deadline`}, sq.Eq{`id`: taskId})
+	if err != nil {
+		zap.S().Error(err)
+		return false
+	}
+	timePast := t.Deadline.Sub(time.Now()).Hours()
+
 	switch action {
 	case `accept`:
-		err := s.TaskActivityService.CreateActivity(ctx, usr.ID, taskId, `taken`)
-		if err != nil {
-			zap.S().Error(err)
-			return true
+		if _, err := s.TaskActivityService.Repo.FindOne(ctx, []string{`task_id`}, sq.Eq{`task_id`: taskId, `executor_id`: usr.ID}); err != nil {
+			err := s.TaskActivityService.CreateActivity(ctx, usr.ID, taskId, `taken`)
+			if err != nil {
+				zap.S().Error(err)
+			}
+		} else {
+			err := s.TaskActivityService.UpdateActivity(ctx, usr.ID, taskId, `taken`)
+			if err != nil {
+				zap.S().Error(err)
+			}
 		}
+
 		msgDel := tgbotapi.NewDeleteMessage(u.CallbackQuery.Message.Chat.ID, u.CallbackQuery.Message.MessageID)
 		s.AnsDelete(msgDel)
-		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, SymbHart+` Це завдання потрібно виконати за добу. На вашу допомогу вже чакають.`)
+		msg := tgbotapi.NewMessage(
+			u.CallbackQuery.Message.Chat.ID,
+			fmt.Sprintf("%s Завдання #%d потрібно виконати за %d годин. На вашу допомогу вже чекають.\n", SymbHart, taskId, timePast),
+		)
 		s.Ans(msg)
 		s.informNeedy(ctx, taskId, `taken`)
 	case `hide`:
@@ -147,7 +166,9 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 			return
 		}
 	case `complete`:
-		msg.Text = `Це завдання позначено виконаним. Якщо це не так, натисніть на кнопку ` + ReopenText + `.`
+		msg.Text = fmt.Sprintf(SymbTask+" Завдання #%d\n"+
+			"Позначено виконаним. Якщо це не так, натисніть на кнопку\n"+
+			"[%s]", tId, ReopenText)
 		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusDone)
 		if err != nil {
 			zap.S().Error(err)
@@ -164,7 +185,7 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 			return
 		}
 	case `reopen`:
-		msg.Text = fmt.Sprintf("Ваше завдання %d чекає на іншого волонтера", tId)
+		msg.Text = fmt.Sprintf("Ваше завдання #%d чекає на іншого волонтера", tId)
 		msg.ReplyMarkup = ToMainKeyboard
 		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusNew)
 		if err != nil {

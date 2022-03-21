@@ -42,7 +42,7 @@ func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 			}
 			kb.InlineKeyboard[0][0].CallbackData = core.StrP(CancelCallback + `:` + strconv.Itoa(tsk.ID))
 			msg.ReplyMarkup = kb
-			msg.Text = fmt.Sprintf(SymbTask+" Завдання #%d\n%s\n- %s", tsk.ID, tsk.Text, statusTranslate)
+			msg.Text = fmt.Sprintf(SymbTask+" Завдання #%d\n\n%s\n\n- %s", tsk.ID, tsk.Text, statusTranslate)
 			s.handler.Ans(msg)
 		}
 	} else {

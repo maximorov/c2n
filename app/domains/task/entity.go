@@ -43,7 +43,9 @@ var AllowedStatuses = map[string]map[string]bool{
 		StatusRefused:   true,
 		StatusExpired:   true,
 	},
-	StatusDone: {},
+	StatusDone: {
+		StatusNew: true,
+	},
 	StatusExpired: {
 		StatusNew:  true,
 		StatusDone: true,
