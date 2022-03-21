@@ -26,6 +26,7 @@ func botHandlers(
 	connPool db.Conn,
 ) {
 	exRepo := executor.NewRepo(connPool)
+	taskRepo := task.NewRepo(connPool)
 	tUC := usecase.NewTaskUseCase(connPool)
 
 	clbkHandler := bot.CallbackHandler{
@@ -42,7 +43,7 @@ func botHandlers(
 	)
 
 	go informExecutors(ctx, exRepo, connPool, clbkHandler)
-	go setExpired(ctx)
+	go setExpired(ctx, taskRepo)
 
 	updates := botApi.GetUpdatesChan(u)
 	for update := range updates {
@@ -126,15 +127,15 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 				continue
 			}
 			if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
-				//zap.S().Info("Not a time")
+				//zap.S().Info("Not a time for inform executors")
 				continue
 			}
 
-			//zap.S().Info("Time!")
+			//zap.S().Info("Time for inform executors!")
 
 			go func(ctx context.Context) {
 				executors, err := exRepo.FindMany(ctx,
-					[]string{`id`, `user_id`, `position`, `area`, `city`, `inform`},
+					[]string{`user_id`, `position`, `area`, `city`, `inform`},
 					map[string]interface{}{})
 				if err != nil {
 					zap.S().Error(err)
@@ -182,7 +183,42 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 	}
 }
 
-func setExpired(ctx context.Context) {
-	// TODO: set undone tasks as expired after deadline
-	// inform user about (see CallbackHandler.informNeedy)
+func setExpired(ctx context.Context, taskRepo *task.Repository) {
+	t := time.NewTicker(time.Minute)
+	for {
+		select {
+		case <-t.C:
+			n := time.Now()
+
+			if n.Minute() != 0 { //every hour
+				zap.S().Info("Not a time for expire tasks")
+				continue
+			}
+
+			zap.S().Info("Time for expire tasks!")
+
+			go func(ctx context.Context) {
+				tasks, err := taskRepo.FindMany(ctx,
+					[]string{`id`, `user_id`, `position`, `status`, `text`, `deadline`},
+					map[string]interface{}{})
+				if err != nil {
+					zap.S().Error(err)
+				}
+
+				for _, oneTask := range tasks {
+					if oneTask.Deadline.Sub(time.Now()) < 0 {
+						_, err = taskRepo.UpdateOne(ctx,
+							map[string]interface{}{
+								`status`: "expired",
+							}, map[string]interface{}{
+								`id`: oneTask.ID,
+							})
+						if err != nil {
+							zap.S().Error(err)
+						}
+					}
+				}
+			}(ctx)
+		}
+	}
 }
