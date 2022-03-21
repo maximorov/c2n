@@ -7,8 +7,8 @@ import (
 
 const CommandHelp = SymbStrength + " Допомогти"
 const CommandTakeNewOrListMy = `Переглянути завдання в роботі, або взяти нове.`
-const CommandMyActiveTasks = "Завдання в роботі"
-const CommandTakeNewTask = "Узяти нове завдання"
+const CommandMyActiveTasks = SymbClipbord + " Завдання в роботі"
+const CommandTakeNewTask = SymbWork + " Узяти нове завдання"
 
 type HelpHandler struct {
 	handler  *MessageHandler

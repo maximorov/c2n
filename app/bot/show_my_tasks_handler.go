@@ -13,7 +13,7 @@ import (
 	"strconv"
 )
 
-const CommandMyTasks = `Мої завдання`
+const CommandMyTasks = SymbWork + ` Мої завдання`
 
 type ShowMyTasksHandler struct {
 	handler   *MessageHandler

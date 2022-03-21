@@ -126,11 +126,11 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 				continue
 			}
 			if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
-				zap.S().Info("Not a time")
+				//zap.S().Info("Not a time")
 				continue
 			}
 
-			zap.S().Info("Time!")
+			//zap.S().Info("Time!")
 
 			go func(ctx context.Context) {
 				executors, err := exRepo.FindMany(ctx,

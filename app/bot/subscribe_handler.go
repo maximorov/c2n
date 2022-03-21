@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	CommandUnsubscribe = "Відписатися від автоматичної розсилки"
-	CommandSubscribe   = "Підписатися на автоматичну розсилку"
+	CommandUnsubscribe = SymbHide + " Відписатися від автоматичної розсилки"
+	CommandSubscribe   = SymbCheckboxOn + " Підписатися на автоматичну розсилку"
 )
 
 type SubscribeHandler struct {

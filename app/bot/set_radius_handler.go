@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-const CommandRadius1 = "Радіус 1 км"
-const CommandRadius3 = "Радіус 3 км"
-const CommandRadius5 = "Радіус 5 км"
-const CommandRadius10 = "Радіус 10 км"
+const CommandRadius1 = "Радіус " + Symb1 + " км"
+const CommandRadius3 = "Радіус " + Symb3 + " км"
+const CommandRadius5 = "Радіус " + Symb5 + " км"
+const CommandRadius10 = "Радіус " + Symb1 + Symb0 + " км"
 
 type SetRadiusHandler struct {
 	handler  *MessageHandler

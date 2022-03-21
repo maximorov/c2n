@@ -29,7 +29,7 @@ func (s *AfterExecutorLocationSetHandler) Handle(ctx context.Context, u *tgbotap
 	msg.Text = `Ви підписані на розсилку запросів у вашому районі.`
 	s.handler.Ans(msg)
 
-	msg.Text = "Оберіть можливий радіус надання допомоги."
+	msg.Text = SymbCompass + " Оберіть можливий радіус надання допомоги."
 	s.handler.Ans(msg)
 }
 

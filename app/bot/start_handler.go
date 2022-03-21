@@ -9,7 +9,7 @@ import (
 const CommandStart = "/start"
 const CommandToMain = SymbBegining + " До початку"
 
-const BotTitle = `Тут вам допоможусть`
+const BotTitle = `Тут допомагають`
 const HelloText = `Бот был создан в помощь волонтерам, которые могут помочь, и нуждающимся, которым эта помощь необходима`
 
 type StartHandler struct {
