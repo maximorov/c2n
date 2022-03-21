@@ -5,6 +5,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
+	"helpers/app/bootstrap"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/user"
@@ -128,52 +129,52 @@ func (s *MessageHandler) Init() {
 	}
 }
 
-func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	if h, ok := s.handlers[u.Message.Text]; ok {
 		h.Handle(ctx, u)
-		return true
+		return
 	}
 
 	usr := ctx.Value(`user`).(*user.User)
 
-	//log.Printf("[%s] %s", u.Message.From.UserName, u.Message.Text)
-
-	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	//msg.ReplyToMessageID = u.Message.MessageID
-
-	if u.Message.Contact != nil {
-		usr := ctx.Value(`user`).(*user.User)
+	switch {
+	case u.Message.Contact != nil:
 		phone, err := setContactsFotUser(ctx, u, usr.ID, db.GetPool())
 		if err != nil {
 			zap.S().Error(err)
+			// TODO: and what if error?
 		}
-		fmt.Printf("PHONE : %d", phone)
+		if bootstrap.Cnf.Debug {
+			zap.S().Debug("PHONE : %d", phone)
+		}
+
+		msg := tgbotapi.NewMessage(u.Message.Chat.ID, "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги")
 		msg.ReplyMarkup = GetLocationKeyboard
-		msg.Text = "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги"
-	}
-	if u.Message.Location != nil {
-		msg.Text = ""
+		s.Ans(msg)
+	case u.Message.Location != nil:
 		switch s.role {
-		//case CommandCreateNewTask:
 		case "needy":
 			err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, u.Message.Location.Latitude, u.Message.Location.Longitude)
 			if err != nil {
 				zap.S().Error(err)
 			}
+			msg := tgbotapi.NewMessage(u.Message.Chat.ID, CommandFiilTaskText)
+			msg.ParseMode = `markdown`
 			msg.ReplyMarkup = ToMainKeyboard
-			msg.Text = CommandFiilTaskText
 			s.Ans(msg)
-			return true
 		case "executor":
 			s.handlers[SetExecutorLocation].Handle(ctx, u)
-			return true
+		default:
+			msg := tgbotapi.NewMessage(
+				u.Message.Chat.ID,
+				`Спробуйте спочатку. Геолокацію треба вибирати, як зазначено в інструкції.`,
+			)
+			msg.ReplyMarkup = HeadKeyboard
+			s.Ans(msg)
 		}
-	}
-
-	switch u.Message.Text {
 	default:
-		// geolocation coordinates
-		if coordsRegexp.Match([]byte(u.Message.Text)) { // someone enters coordinates manually
+		switch { // someone enters coordinates manually
+		case coordsRegexp.Match([]byte(u.Message.Text)): // geolocation coordinates
 			lonLat := strings.Split(u.Message.Text, `,`)
 			lat, _ := strconv.ParseFloat(lonLat[0], 64)
 			lon, _ := strconv.ParseFloat(lonLat[1], 64)
@@ -181,33 +182,33 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 			if err != nil {
 				zap.S().Error(err)
 			}
-			msg.Text = CommandFiilTaskText
+			msg := tgbotapi.NewMessage(u.Message.Chat.ID, CommandFiilTaskText)
+			msg.ParseMode = `markdown`
 			msg.ReplyMarkup = ToMainKeyboard
-			_, err = s.BotApi.Send(msg)
-			if err != nil {
-				zap.S().Error(err)
-			}
-			return true
-		}
-		// any text determines like text of task
-		tsk, err := s.TaskService.GetUsersRawTask(ctx, usr.ID)
-		if err != nil {
-			msg.Text = fmt.Sprintf(`"%s" - Команда не зрозуміла. Спробуйте іншу `, msg.Text)
 			s.Ans(msg)
-			return true
+		default: // any text determines like text of task
+			tsk, err := s.TaskService.GetUsersRawTask(ctx, usr.ID)
+			if err != nil {
+				msg := tgbotapi.NewMessage(
+					u.Message.Chat.ID,
+					fmt.Sprintf(`"%s" - Команда не зрозуміла. Спробуйте іншу з варіантів нижче `+SymbLoopDown, u.Message.Text),
+				)
+				s.Ans(msg)
+			} else {
+				tuc := usecase.NewTaskUseCase(db.GetPool())
+				err = tuc.UpdateLastRawWithText(ctx, tsk.ID, u.Message.Text)
+				if err != nil {
+					zap.S().Error(err)
+				}
+				msg := tgbotapi.NewMessage(
+					u.Message.Chat.ID,
+					fmt.Sprintf("Ваше завдання #%d\nОчікуйте повідомлення протягом %d годин\nЩойно волонтер візьметься за ваше завдання, ми вам повідомимо.", tsk.ID, task.TaskDeadline),
+				)
+				msg.ReplyMarkup = ToMainKeyboard
+				s.Ans(msg)
+			}
 		}
-		s := usecase.NewTaskUseCase(db.GetPool())
-		err = s.UpdateLastRawWithText(ctx, tsk.ID, u.Message.Text)
-		if err != nil {
-			zap.S().Error(err)
-		}
-		msg.Text = fmt.Sprintf("Завдання #%d\nОчікуйте повідомлення протягом %d годин", tsk.ID, task.TaskDeadline)
-		msg.ReplyMarkup = ToMainKeyboard
 	}
-
-	s.Ans(msg)
-
-	return false
 }
 
 func (s *MessageHandler) Ans(msg tgbotapi.Chattable) {

@@ -34,4 +34,10 @@ const (
 	Symb5          = `5️⃣`
 	SymbCompass    = `🧭`
 	SymbCheckboxOn = `☑️`
+	SymbLoopDown   = `👇️`
+	SymbdontKnow   = `🤷`
+	SymbPerson     = `🙍`
+	SymbContact    = `📧`
+	SymbHart       = `❤️`
+	SymbClapper    = `🎬️`
 )

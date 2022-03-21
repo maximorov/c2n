@@ -10,7 +10,7 @@ const CommandStart = "/start"
 const CommandToMain = SymbBegining + " До початку"
 
 const BotTitle = `Тут допомагають`
-const HelloText = `Бот был создан в помощь волонтерам, которые могут помочь, и нуждающимся, которым эта помощь необходима`
+const HelloText = `Бот був створений волонтерами на допомогу волонтерам, і тим, кому потрібна допомога волонтерів.`
 
 type StartHandler struct {
 	handler  *MessageHandler

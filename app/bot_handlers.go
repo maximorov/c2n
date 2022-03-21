@@ -123,15 +123,12 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 		case <-t.C:
 			n := time.Now()
 
-			if n.Hour() < 8 || n.Hour() > 22 { //at night all sleeps
+			if n.Hour() < 8 || n.Hour() > 21 { //at night all sleeps
 				continue
 			}
 			if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
-				//zap.S().Info("Not a time for inform executors")
 				continue
 			}
-
-			//zap.S().Info("Time for inform executors!")
 
 			go func(ctx context.Context) {
 				executors, err := exRepo.FindMany(ctx,
@@ -175,7 +172,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 						callBack.Ans(msg)
 					}
 					msg.ReplyMarkup = bot.UnsubscribeKeyboard
-					msg.Text = "Якщо не хочете отримувати автоматичну розсилку натисніть \"Відписатися\""
+					msg.Text = `Якщо ви не хочете отримувати автоматичну розсилку, натисніть ` + bot.SymbHide
 					callBack.Ans(msg)
 				}
 			}(ctx)
@@ -197,7 +194,13 @@ func setExpired(ctx context.Context, taskRepo *task.Repository) {
 			go func(ctx context.Context) {
 				tasks, err := taskRepo.FindMany(ctx,
 					[]string{`id`, `user_id`, `position`, `status`, `text`, `deadline`},
-					map[string]interface{}{})
+					map[string]interface{}{
+						`status`: []string{
+							task.StatusRaw,
+							task.StatusNew,
+							task.StatusInProgress,
+						},
+					})
 				if err != nil {
 					zap.S().Error(err)
 				}
@@ -206,7 +209,7 @@ func setExpired(ctx context.Context, taskRepo *task.Repository) {
 					if oneTask.Deadline.Sub(time.Now()) < 0 {
 						_, err = taskRepo.UpdateOne(ctx,
 							map[string]interface{}{
-								`status`: "expired",
+								`status`: task.StatusExpired,
 							}, map[string]interface{}{
 								`id`: oneTask.ID,
 							})

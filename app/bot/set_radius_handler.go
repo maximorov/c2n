@@ -24,7 +24,7 @@ type SetRadiusHandler struct {
 
 func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
-	e, err := s.handler.ExecutorRepo.FindOne(ctx, []string{`user_id`, `position`, `area`},
+	ex, err := s.handler.ExecutorRepo.FindOne(ctx, []string{`user_id`, `position`, `area`, `inform`},
 		map[string]interface{}{
 			`user_id`: usr.ID,
 		})
@@ -37,15 +37,18 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		zap.S().Error(err)
 	}
 
-	tasks, err := s.handler.TaskService.FindTasksInRadius(ctx, e.Position, usr.ID, float64(e.Area))
+	tasks, err := s.handler.TaskService.FindTasksInRadius(ctx, ex.Position, usr.ID, float64(ex.Area))
 	if len(tasks) == 0 {
 		// no tasks in area
-		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-		// msg.ReplyToMessageID = u.Message.MessageID
+		msg := tgbotapi.NewMessage(u.Message.Chat.ID, CommandNoTasks)
 		msg.ReplyMarkup = s.keyboard
-		msg.Text = CommandNoTasks
-
 		s.handler.Ans(msg)
+
+		if ex.Inform {
+			msg = tgbotapi.NewMessage(u.Message.Chat.ID, "Якщо завдання у вашому районі з'являться – ми вам про це повідомимо у цьому чаті")
+			msg.ReplyMarkup = s.keyboard
+			s.handler.Ans(msg)
+		}
 		return
 	}
 
@@ -75,7 +78,7 @@ func prepareTaskText(taskId, taskText string, taskCreated time.Time) string {
 		pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
 	}
 
-	result := fmt.Sprintf("%s Завдання #%s\nСтворено %s\n%s", SymbTask, taskId, pastText, taskText)
+	result := fmt.Sprintf("%s Завдання #%s\nСтворено %s\n\n%s", SymbTask, taskId, pastText, taskText)
 
 	return result
 }

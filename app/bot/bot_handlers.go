@@ -16,10 +16,10 @@ import (
 	"strings"
 )
 
-const ReopenText = `Перевідкрити`
+const ReopenText = SymbClapper + ` Перевідкрити`
 const ReopenCallback = `reopen`
 
-const CancelText = `Видалити завданняЗадача закрита`
+const CancelText = SymbRefuse + ` Видалити завдання`
 const CancelCallback = `cancel`
 
 type CallbackHandler struct {
@@ -63,7 +63,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		if err != nil {
 			zap.S().Error(err)
 		}
-		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Це завдання потрібно виконати за добу.`)
+		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, SymbHart+` Це завдання потрібно виконати за добу. На вашу допомогу вже чакають.`)
 		s.Ans(msg)
 		s.informNeedy(ctx, taskId, `taken`)
 	case `hide`:
@@ -141,14 +141,17 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 			return
 		}
 	case `taken`:
-		msg.Text = `Це завдання у процесі виконання. Якщо протягом декількох годин ви не отримали повідомлення від волонтера, натисніть на кнопку ` + ReopenText + `.`
+		msg.Text = fmt.Sprintf(SymbTask+" Завдання %d\n"+
+			"Хтось узяв його у роботу.\n"+
+			"Якщо протягом декількох годин ви не отримали повідомлення від волонтера, "+
+			"натисніть на кнопку %s - ми будемо шукати іншого.", tId, ReopenText)
 		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusInProgress)
 		if err != nil {
 			zap.S().Error(err)
 			return
 		}
 	case `reopen`:
-		msg.Text = fmt.Sprintf("ваша задача %d переоткрыта", tId)
+		msg.Text = fmt.Sprintf("Ваше завдання %d чекає на іншого волонтера", tId)
 		msg.ReplyMarkup = ToMainKeyboard
 		err := s.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusNew)
 		if err != nil {

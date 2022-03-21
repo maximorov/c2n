@@ -5,7 +5,10 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const CommandFiilTaskText = "Укажіть завдання у форматі: \nім'я\nопис завдання\nяк з вами зв'язатися."
+const CommandFiilTaskText = "*Укажіть завдання у форматі:* \n" +
+	SymbPerson + " ім'я\n" +
+	SymbTask + " опис завдання\n" +
+	SymbContact + " як з вами зв'язатися."
 
 type WhatFillTaskText struct {
 	handler  *MessageHandler
@@ -14,7 +17,6 @@ type WhatFillTaskText struct {
 
 func (s *WhatFillTaskText) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-	// msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
 	msg.Text = "`"
 }

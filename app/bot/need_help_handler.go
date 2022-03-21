@@ -17,7 +17,7 @@ type NeedHelpHandler struct {
 func (s *NeedHelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
-	msg.Text = `Ви можете зробити нове завдання або переглянути стан своїх актуальних завдань, які ще ні ким не виконані.`
+	msg.Text = `Ви можете створити нове завдання або переглянути стан своїх актуальних завдань, які ще ні ким не виконані.`
 	if s.handler.TaskService.IsUserHaveUndoneTasks(ctx, usr.ID) {
 		msg.ReplyMarkup = s.keyboardHaveTasks
 	} else {

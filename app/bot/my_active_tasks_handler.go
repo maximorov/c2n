@@ -25,10 +25,8 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		zap.S().Error(err)
 	}
 	if len(tasks) == 0 {
-		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-		// msg.ReplyToMessageID = u.Message.MessageID
+		msg := tgbotapi.NewMessage(u.Message.Chat.ID, NoUndoneTasksMessage)
 		msg.ReplyMarkup = s.keyboard
-		msg.Text = NoUndoneTasksMessage
 		s.handler.Ans(msg)
 		return
 	}
