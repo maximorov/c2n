@@ -36,12 +36,8 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		ExecutorTasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`complete:` + tId)
 		ExecutorTasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`refuse:` + tId)
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
-		// msg.ReplyToMessageID = u.Message.MessageID
 		msg.ReplyMarkup = ExecutorTasksListKeyboard
-		msg.Text = SymbTask + ` Завдання #` + tId + "\n" + t.Text
-		_, err := s.handler.BotApi.Send(msg)
-		if err != nil {
-			zap.S().Error(err)
-		}
+		msg.Text = SymbTask + ` Завдання #` + tId + "\n\n" + t.Text
+		s.handler.Ans(msg)
 	}
 }

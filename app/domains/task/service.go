@@ -79,7 +79,7 @@ func (s *Service) IsUserHaveUndoneTasks(ctx context.Context, userId int) bool {
 
 func (s *Service) IsExecutorHaveUndoneTasks(ctx context.Context, userId int) bool {
 	_, err := s.repoActivity.FindOne(ctx, []string{
-		`id`,
+		`executor_id`,
 	}, map[string]interface{}{
 		`executor_id`: userId,
 		`status`:      []string{`taken`},

@@ -8,7 +8,7 @@ import (
 
 const CommandHelp = SymbStrength + " Допомогти"
 const CommandTakeNewTaskText = `Тут ви можете бачити ваші поточні завдання. а поки, тицяйте кнопку нижче ` + SymbLoopDown
-const CommandListMyTasksText = `Також ви можете переглянути свої активні завдання&`
+const CommandListMyTasksText = `Ви можете переглянути свої поточні завдання, або знайти нове.`
 const CommandMyActiveTasks = SymbClipbord + " Завдання в роботі"
 const CommandTakeNewTask = SymbWork + " Узяти нове завдання"
 
@@ -20,12 +20,13 @@ type HelpHandler struct {
 
 func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
-	msg := tgbotapi.NewMessage(u.Message.Chat.ID, CommandTakeNewTaskText)
 
+	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
 	if s.handler.TaskService.IsExecutorHaveUndoneTasks(ctx, usr.ID) {
+		msg.Text = CommandListMyTasksText
 		msg.ReplyMarkup = s.keyboard
-		msg.Text += "\n" + CommandListMyTasksText
 	} else {
+		msg.Text = CommandTakeNewTaskText
 		msg.ReplyMarkup = s.keyboardNoTasks
 	}
 

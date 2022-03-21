@@ -101,3 +101,7 @@ create table if not exists tasks_appeales
 alter table users_executors
     add inform bool default true not null;
 
+alter table tasks_activity
+    add constraint tasks_activity_pk
+        primary key (executor_id, task_id);
+

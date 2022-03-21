@@ -28,6 +28,13 @@ type CallbackHandler struct {
 	TaskUseCase         *usecase.TaskUseCase
 }
 
+func (s *CallbackHandler) AnsDelete(msg tgbotapi.DeleteMessageConfig) {
+	_, err := s.BotApi.Send(msg)
+	if err != nil {
+		zap.S().Error(err)
+	}
+}
+
 func (s *CallbackHandler) Ans(msg tgbotapi.MessageConfig) {
 	_, err := s.BotApi.Send(msg)
 	if err != nil {
@@ -62,7 +69,10 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		err := s.TaskActivityService.CreateActivity(ctx, usr.ID, taskId, `taken`)
 		if err != nil {
 			zap.S().Error(err)
+			return true
 		}
+		msgDel := tgbotapi.NewDeleteMessage(u.CallbackQuery.Message.Chat.ID, u.CallbackQuery.Message.MessageID)
+		s.AnsDelete(msgDel)
 		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, SymbHart+` Це завдання потрібно виконати за добу. На вашу допомогу вже чакають.`)
 		s.Ans(msg)
 		s.informNeedy(ctx, taskId, `taken`)
@@ -70,7 +80,10 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		err := s.TaskActivityService.CreateActivity(ctx, usr.ID, taskId, `hidden`)
 		if err != nil {
 			zap.S().Error(err)
+			return true
 		}
+		msgDel := tgbotapi.NewDeleteMessage(u.CallbackQuery.Message.Chat.ID, u.CallbackQuery.Message.MessageID)
+		s.AnsDelete(msgDel)
 		msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Це завдання візьме інший волонтер.`)
 		s.Ans(msg)
 	case `complete`:
