@@ -91,7 +91,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		s.AnsDelete(msgDel)
 		msg := tgbotapi.NewMessage(
 			u.CallbackQuery.Message.Chat.ID,
-			fmt.Sprintf("%s Завдання #%d потрібно виконати за %d годин. На вашу допомогу вже чекають.\n", SymbHart, taskId, timePast),
+			fmt.Sprintf("%s Завдання #%d потрібно виконати менш ніж за %d годин. На вашу допомогу вже чекають.\n", SymbHart, taskId, int(timePast)),
 		)
 		s.Ans(msg)
 		s.informNeedy(ctx, taskId, `taken`)
@@ -125,9 +125,11 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 		s.informNeedy(ctx, taskId, `reopen`)
 	case CancelCallback:
 		if s.informExecutor(ctx, taskId, CancelCallback) {
-			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Виконався попереджено`)
+			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Виконавця попереджено`)
 			s.Ans(msg)
 		} else {
+			msgDel := tgbotapi.NewDeleteMessage(u.CallbackQuery.Message.Chat.ID, u.CallbackQuery.Message.MessageID)
+			s.AnsDelete(msgDel)
 			msg := tgbotapi.NewMessage(u.CallbackQuery.Message.Chat.ID, `Завдання видалено.`)
 			s.Ans(msg)
 		}

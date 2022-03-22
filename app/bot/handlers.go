@@ -7,6 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"helpers/app/bootstrap"
+	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/user"
@@ -221,6 +222,7 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 				)
 				fmt.Println(err)
 				if len(executors) > 0 {
+					tskId := strconv.Itoa(tsk.ID)
 					for _, ex := range executors {
 						dist := ts.CountDistance(tsk.Position, ex.Position)
 						if dist <= float64(ex.Area) {
@@ -233,9 +235,11 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 							socNetId, _ := strconv.Atoi(snUser.SocNetID)
 							msg = tgbotapi.NewMessage(
 								int64(socNetId),
-								PrepareTaskText(strconv.Itoa(tsk.ID), u.Message.Text, tsk.Created, dist),
+								PrepareTaskText(tskId, u.Message.Text, tsk.Created, dist),
 							)
-							msg.ReplyMarkup = ToMainKeyboard
+							TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tskId)
+							TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tskId)
+							msg.ReplyMarkup = TasksListKeyboard
 							s.Ans(msg)
 						}
 					}

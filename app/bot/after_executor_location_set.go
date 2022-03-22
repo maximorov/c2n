@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	sq "github.com/Masterminds/squirrel"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
@@ -47,7 +48,15 @@ func (s *AfterExecutorLocationSetHandler) registerExecutor(ctx context.Context, 
 			return nil
 		}
 	} else {
-		// TODO: update position
+		pos := db.CreatePoint(u.Message.Location.Latitude, u.Message.Location.Longitude)
+		_, err = su.UpdateOne(
+			ctx,
+			map[string]interface{}{`position`: &pos},
+			sq.Eq{`user_id`: userID},
+		)
+		if err != nil {
+			zap.S().Error(err)
+		}
 	}
 
 	return err

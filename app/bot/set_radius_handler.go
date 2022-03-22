@@ -35,7 +35,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		zap.S().Error(err)
 	}
 
-	tasks, err := s.handler.TaskService.FindTasksInRadius(ctx, ex.Position, usr.ID, float64(ex.Area))
+	tasks, err := s.handler.TaskService.FindTasksInRadius(ctx, ex.Position, usr.ID, float64(s.radius))
 	if len(tasks) == 0 {
 		// no tasks in area
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, CommandNoTasks)
