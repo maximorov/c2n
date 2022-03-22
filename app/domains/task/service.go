@@ -38,13 +38,19 @@ func (s *Service) CreateTask(ctx context.Context, userId int, x, y float64, text
 	return id, err
 }
 
-func (s *Service) GetUsersRawTask(ctx context.Context, userId int) (*Task, error) {
-	task, err := s.repo.FindOne(ctx, []string{
-		`id`,
-	}, map[string]interface{}{
-		`user_id`: userId,
-		`status`:  `raw`,
-	})
+func (s *Service) GetUsersLastRawTask(ctx context.Context, userId int) (*Task, error) {
+	task := &Task{}
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sb := psql.Select([]string{`id`}...).
+		From(`"` + s.repo.Schema().TableName() + `"`).
+		Where(sq.Eq{`user_id`: userId, `status`: `raw`}).
+		OrderBy(`created DESC`).
+		Limit(1)
+	err := core.FindOneSB(ctx, s.repo.Conn(), sb, task)
+	if err != nil {
+		zap.S().Error(err)
+	}
 
 	return task, err
 }

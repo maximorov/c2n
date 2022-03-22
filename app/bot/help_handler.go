@@ -7,7 +7,7 @@ import (
 )
 
 const CommandHelp = SymbStrength + " Допомогти"
-const CommandTakeNewTaskText = `Тут ви можете бачити ваші поточні завдання. а поки, тицяйте кнопку нижче ` + SymbLoopDown
+const CommandTakeNewTaskText = `Тут ви можете бачити ваші поточні завдання. А поки, тицяйте кнопку нижче ` + SymbLoopDown
 const CommandListMyTasksText = `Ви можете переглянути свої поточні завдання, або знайти нове.`
 const CommandMyActiveTasks = SymbClipbord + " Завдання в роботі"
 const CommandTakeNewTask = SymbWork + " Узяти нове завдання"

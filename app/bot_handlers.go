@@ -126,7 +126,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 			if n.Hour() < 8 || n.Hour() > 21 { //at night all sleeps
 				continue
 			}
-			if n.Hour()%3 != 0 || n.Minute() != 0 { //every 3 hours
+			if n.Hour()%1 != 0 || n.Minute() != 0 { //every 3 hours
 				continue
 			}
 

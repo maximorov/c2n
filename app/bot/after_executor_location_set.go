@@ -26,7 +26,7 @@ func (s *AfterExecutorLocationSetHandler) Handle(ctx context.Context, u *tgbotap
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	msg.ReplyMarkup = s.keyboard
-	msg.Text = `Ви підписані на розсилку запросів у вашому районі.`
+	msg.Text = `Ви підписані на розсилку запитів у вашому районі.`
 	s.handler.Ans(msg)
 
 	msg.Text = SymbCompass + " Оберіть можливий радіус надання допомоги."

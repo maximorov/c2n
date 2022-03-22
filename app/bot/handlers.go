@@ -187,7 +187,7 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 			msg.ReplyMarkup = ToMainKeyboard
 			s.Ans(msg)
 		default: // any text determines like text of task
-			tsk, err := s.TaskService.GetUsersRawTask(ctx, usr.ID)
+			tsk, err := s.TaskService.GetUsersLastRawTask(ctx, usr.ID)
 			if err != nil {
 				msg := tgbotapi.NewMessage(
 					u.Message.Chat.ID,
