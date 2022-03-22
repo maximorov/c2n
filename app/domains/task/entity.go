@@ -65,6 +65,16 @@ type Task struct {
 	Deadline time.Time
 	Created  time.Time `json:"created,omitempty"`
 	Updated  time.Time `json:"updated,omitempty"`
+
+	distance float64
+}
+
+func (s *Task) SetDistance(dist float64) {
+	s.distance = dist
+}
+
+func (s *Task) GetDistance() float64 {
+	return s.distance
 }
 
 func (s *Task) IsEntity() {}

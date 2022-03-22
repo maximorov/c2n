@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var coordsRegexp, _ = regexp.Compile(`^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$`)
@@ -259,4 +260,19 @@ func (s *MessageHandler) setLocationFotUser(ctx context.Context, update *tgbotap
 	}
 
 	return nil
+}
+
+func PrepareTaskText(taskId, taskText string, taskCreated time.Time, dist float64) string {
+	past := time.Since(taskCreated)
+	hoursAgo := past.Hours()
+	var pastText string
+	if hoursAgo < 1 {
+		pastText = `менш ніж годину тому`
+	} else {
+		pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
+	}
+
+	result := fmt.Sprintf("%s Завдання #%s\nСтворено %s\n\n%s\n\nВідстань від вас: %.0f метрів", SymbTask, taskId, pastText, taskText, dist)
+
+	return result
 }

@@ -157,6 +157,7 @@ func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, 
 	for _, task := range tasks {
 		dist := s.CountDistance(task.Position, location)
 		if dist < area {
+			task.SetDistance(dist)
 			result = append(result, task)
 		}
 

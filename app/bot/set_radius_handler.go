@@ -2,13 +2,11 @@ package bot
 
 import (
 	"context"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"helpers/app/core"
 	"helpers/app/domains/user"
 	"strconv"
-	"time"
 )
 
 const CommandRadius1 = "Радіус " + Symb1 + " км"
@@ -60,27 +58,12 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
 		msg.ReplyMarkup = TasksListKeyboard
 
-		msg.Text = prepareTaskText(tId, t.Text, t.Created)
+		msg.Text = PrepareTaskText(tId, t.Text, t.Created, t.GetDistance())
 
 		s.handler.Ans(msg)
 	}
 
 	return
-}
-
-func prepareTaskText(taskId, taskText string, taskCreated time.Time) string {
-	past := time.Since(taskCreated)
-	hoursAgo := past.Hours()
-	var pastText string
-	if hoursAgo < 1 {
-		pastText = `менш ніж годину тому`
-	} else {
-		pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
-	}
-
-	result := fmt.Sprintf("%s Завдання #%s\nСтворено %s\n\n%s", SymbTask, taskId, pastText, taskText)
-
-	return result
 }
 
 func (s *SetRadiusHandler) setAreaForUser(ctx context.Context, userID, area int) error {
