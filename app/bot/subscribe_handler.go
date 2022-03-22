@@ -25,4 +25,11 @@ func (s *SubscribeHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	if err != nil {
 		zap.S().Error(err)
 	}
+
+	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
+	msg.ReplyMarkup = HeadKeyboard
+	msg.ParseMode = `markdown`
+	msg.Text = "Тепер ви не будете отримувати автоматичну розсилку про потребу допомоги поруч \U0001F972"
+
+	s.handler.Ans(msg)
 }
