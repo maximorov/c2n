@@ -42,7 +42,7 @@ func (s *Service) GetUsersLastRawTask(ctx context.Context, userId int) (*Task, e
 	task := &Task{}
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	sb := psql.Select([]string{`id`}...).
+	sb := psql.Select([]string{`id`, `position`, `created`}...).
 		From(`"` + s.repo.Schema().TableName() + `"`).
 		Where(sq.Eq{`user_id`: userId, `status`: `raw`}).
 		OrderBy(`created DESC`).
@@ -160,7 +160,6 @@ func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, 
 			task.SetDistance(dist)
 			result = append(result, task)
 		}
-
 	}
 
 	return result, nil

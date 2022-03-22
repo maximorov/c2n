@@ -3,6 +3,7 @@ package bot
 import (
 	"context"
 	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"helpers/app/bootstrap"
@@ -10,6 +11,7 @@ import (
 	"helpers/app/domains/task"
 	"helpers/app/domains/user"
 	"helpers/app/domains/user/executor"
+	"helpers/app/domains/user/soc_net"
 	"helpers/app/usecase"
 	"regexp"
 	"strconv"
@@ -207,6 +209,37 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 				)
 				msg.ReplyMarkup = ToMainKeyboard
 				s.Ans(msg)
+
+				// Inform executors about new task in their area
+				ts := task.NewService(db.GetPool())
+				snr := soc_net.NewRepo(db.GetPool())
+
+				executors, err := executor.NewRepo(db.GetPool()).FindMany( // find all with inform true
+					ctx,
+					[]string{`user_id`, `position`, `area`},
+					sq.Eq{`inform`: true},
+				)
+				fmt.Println(err)
+				if len(executors) > 0 {
+					for _, ex := range executors {
+						dist := ts.CountDistance(tsk.Position, ex.Position)
+						if dist <= float64(ex.Area) {
+							tsk.SetDistance(dist)
+							snUser, err := snr.FindOne(ctx, []string{`soc_net_id`}, sq.Eq{`user_id`: ex.UserId})
+							if err != nil {
+								zap.S().Error(err)
+								continue
+							}
+							socNetId, _ := strconv.Atoi(snUser.SocNetID)
+							msg = tgbotapi.NewMessage(
+								int64(socNetId),
+								PrepareTaskText(strconv.Itoa(tsk.ID), u.Message.Text, tsk.Created, dist),
+							)
+							msg.ReplyMarkup = ToMainKeyboard
+							s.Ans(msg)
+						}
+					}
+				}
 			}
 		}
 	}
