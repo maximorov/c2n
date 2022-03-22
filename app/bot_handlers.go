@@ -168,7 +168,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 						bot.TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tId)
 						bot.TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tId)
 						msg.ReplyMarkup = bot.TasksListKeyboard
-						msg.Text = bot.PrepareTaskText(tId, t.Text, t.Created, t.GetDistance())
+						msg.Text = bot.PrepareTaskText(t)
 						callBack.Ans(msg)
 					}
 					msg.ReplyMarkup = bot.UnsubscribeKeyboard

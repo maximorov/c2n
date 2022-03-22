@@ -9,9 +9,11 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"helpers/app/core"
+	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
 	"helpers/app/domains/user"
+	"helpers/app/domains/user/executor"
 	"helpers/app/usecase"
 	"strconv"
 	"strings"
@@ -66,12 +68,16 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 	action := parsed[0]
 	taskId, _ := strconv.Atoi(parsed[1])
 
-	t, err := s.TaskUseCase.TaskRepo.FindOne(ctx, []string{`deadline`}, sq.Eq{`id`: taskId})
+	tsk, err := s.TaskUseCase.TaskRepo.FindOne(
+		ctx,
+		[]string{`id`, `text`, `created`, `deadline`},
+		sq.Eq{`id`: taskId},
+	)
 	if err != nil {
 		zap.S().Error(err)
 		return false
 	}
-	timePast := t.Deadline.Sub(time.Now()).Hours()
+	timePast := tsk.Deadline.Sub(time.Now()).Hours()
 
 	switch action {
 	case `accept`:
@@ -89,9 +95,25 @@ func (s *CallbackHandler) Handle(ctx context.Context, u tgbotapi.Update) bool {
 
 		msgDel := tgbotapi.NewDeleteMessage(u.CallbackQuery.Message.Chat.ID, u.CallbackQuery.Message.MessageID)
 		s.AnsDelete(msgDel)
+
+		// Get task-executor distance
+		ts := task.NewService(db.GetPool())
+		exRepo := executor.NewRepo(db.GetPool())
+
+		ex, err := exRepo.FindOne(ctx, []string{`position`}, sq.Eq{`user_id`: usr.ID})
+		if err != nil {
+			zap.S().Error(err)
+			return true
+		}
+		dist := ts.CountDistance(tsk.Position, ex.Position)
+
+		tsk.SetDistance(dist)
+		taskText := PrepareTaskText(tsk)
+
 		msg := tgbotapi.NewMessage(
 			u.CallbackQuery.Message.Chat.ID,
-			fmt.Sprintf("%s Завдання #%d потрібно виконати менш ніж за %d годин. На вашу допомогу вже чекають.\n", SymbHart, taskId, int(timePast)),
+			fmt.Sprintf("#%d\n\n%s\n\nПотрібно виконати менш ніж за %d годин. На вашу допомогу вже чекають.",
+				taskId, taskText, int(timePast)),
 		)
 		s.Ans(msg)
 		s.informNeedy(ctx, taskId, `taken`)
@@ -177,7 +199,7 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 			return
 		}
 	case `taken`:
-		msg.Text = fmt.Sprintf(SymbTask+" Завдання %d\n"+
+		msg.Text = fmt.Sprintf(SymbTask+" Завдання #%d\n"+
 			"Хтось узяв його у роботу.\n"+
 			"Якщо протягом декількох годин ви не отримали повідомлення від волонтера, "+
 			"натисніть на кнопку %s - ми будемо шукати іншого.", tId, ReopenText)

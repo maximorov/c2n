@@ -233,9 +233,10 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 								continue
 							}
 							socNetId, _ := strconv.Atoi(snUser.SocNetID)
+							tsk.Text = u.Message.Text
 							msg = tgbotapi.NewMessage(
 								int64(socNetId),
-								PrepareTaskText(tskId, u.Message.Text, tsk.Created, dist),
+								PrepareTaskText(tsk),
 							)
 							TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tskId)
 							TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tskId)
@@ -299,8 +300,8 @@ func (s *MessageHandler) setLocationFotUser(ctx context.Context, update *tgbotap
 	return nil
 }
 
-func PrepareTaskText(taskId, taskText string, taskCreated time.Time, dist float64) string {
-	past := time.Since(taskCreated)
+func PrepareTaskText(task *task.Task) string {
+	past := time.Since(task.Created)
 	hoursAgo := past.Hours()
 	var pastText string
 	if hoursAgo < 1 {
@@ -309,7 +310,9 @@ func PrepareTaskText(taskId, taskText string, taskCreated time.Time, dist float6
 		pastText = strconv.Itoa(int(hoursAgo)) + ` годин тому`
 	}
 
-	result := fmt.Sprintf("%s Завдання #%s\nСтворено %s\n\n%s\n\nВідстань від вас: %.0f метрів", SymbTask, taskId, pastText, taskText, dist)
+	result := fmt.Sprintf(
+		"%s Завдання #%d\nСтворено %s\n\n%s\n\nВідстань від вас: %.0f метрів",
+		SymbTask, task.ID, pastText, task.Text, task.GetDistance())
 
 	return result
 }

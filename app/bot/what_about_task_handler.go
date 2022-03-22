@@ -6,7 +6,7 @@ import (
 )
 
 const CommandFiilTaskText = "*Укажіть завдання у форматі:* \n" +
-	SymbPerson + " ім'я\n" +
+	SymbPerson + " ваше ім'я\n" +
 	SymbTask + " опис завдання\n" +
 	SymbContact + " як з вами зв'язатися."
 
@@ -15,7 +15,7 @@ type WhatFillTaskText struct {
 	keyboard tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *WhatFillTaskText) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *WhatFillTaskText) Handle(_ context.Context, u *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	msg.ReplyMarkup = s.keyboard
 	msg.Text = "`"
