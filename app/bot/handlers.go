@@ -155,7 +155,12 @@ func (s *MessageHandler) Init() {
 }
 
 func (s *MessageHandler) GetUserRole(ctx context.Context, u *tgbotapi.Update) user.Role {
-	return s.DetectHandler(ctx, u).UserRole()
+	h := s.DetectHandler(ctx, u)
+	if h != nil {
+		return h.UserRole()
+	}
+
+	return user.Unknown
 }
 
 func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) Handler {
@@ -167,6 +172,11 @@ func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) 
 
 	if u.CallbackData() != `` {
 		return s.callbackHandler
+	}
+
+	if u.Message == nil {
+		zap.S().Error(`Someone delete bot`)
+		return nil
 	}
 
 	if u.Message.ReplyToMessage != nil {
@@ -198,7 +208,7 @@ func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) 
 
 func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	handler := s.DetectHandler(ctx, u)
-	if !handler.Handle(ctx, u) {
+	if handler != nil && !handler.Handle(ctx, u) {
 		// Else events handler
 		msg := tgbotapi.NewMessage(
 			u.Message.Chat.ID,
