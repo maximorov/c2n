@@ -106,5 +106,5 @@ alter table tasks_activity
         primary key (executor_id, task_id);
 
 alter table users_soc_nets
-    add last_received_message text default null;
+    add last_received_message text default ''::text;
 
