@@ -5,6 +5,8 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jackc/pgx/v4"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
@@ -190,7 +192,7 @@ func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) 
 		[]string{`last_received_message`},
 		sq.Eq{`soc_net_id`: strconv.Itoa(int(u.Message.Chat.ID))},
 	)
-	if err != nil {
+	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
 		zap.S().Error(err)
 	}
 	if snu != nil && snu.LastReceivedMessage != `` {
