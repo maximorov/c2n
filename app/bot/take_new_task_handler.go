@@ -23,11 +23,11 @@ func (s *TakeNewTaskHandlerHandler) Handle(ctx context.Context, u *tgbotapi.Upda
 	msg.ReplyMarkup = s.keyboard
 	s.handler.Ans(msg)
 
-	msg = tgbotapi.NewMessage(u.Message.Chat.ID, `Поділіться, будь-ласка, локацією, натиснувши кнопку `+"\n\n["+CommandGetLocationAuto+"]\n\n"+`Або якщо ви хочете обрати іншу локацію, оберіть її за допомогою кнопки `+SymbClip /*+`, як вказано на відео нижче `+SymbLoopDown*/)
+	msg = tgbotapi.NewMessage(u.Message.Chat.ID, `Поділіться, будь-ласка, локацією, натиснувши кнопку `+"\n\n["+CommandGetLocationAuto+"]\n\n"+`(Працює лише на телефоні)`+SymbPhone+"\n"+`Або якщо ви хочете обрати іншу локацію, оберіть її за допомогою кнопки `+SymbClip+`, як вказано на відео нижче `+SymbLoopDown)
 	msg.ReplyMarkup = s.keyboard
 	s.handler.Ans(msg)
 
-	//s.handler.sendVideoHowSendLocation(u.Message.Chat.ID, s.keyboard)
+	s.handler.sendVideoHowSendLocation(u.Message.Chat.ID, s.keyboard)
 
 	msg = tgbotapi.NewMessage(u.Message.Chat.ID, fmt.Sprintf("%s %s\nВони матимуть вигляд: `%s`", SymbWarning, GoogleSuggestion, `50.44639862968634, 30.521755358513595`))
 	msg.ParseMode = `markdown`

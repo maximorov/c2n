@@ -39,4 +39,5 @@ const (
 	SymbHart       = `❤️`
 	SymbClapper    = `🎬️`
 	SymbHand       = `✋🏻`
+	SymbPhone      = `📱`
 )
