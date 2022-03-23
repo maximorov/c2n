@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"helpers/app/domains/user"
 )
 
 const CommandInformation = SymbInfo + " Довідка"
@@ -25,11 +26,17 @@ type AboutHandler struct {
 	keyboard tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *AboutHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *AboutHandler) UserRole() user.Role {
+	return user.Unknown
+}
+
+func (s *AboutHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	msg.Text = fmt.Sprintf("*%s*\n%s\n\n*%s*\n%s", T1, d1, T2, d2)
 	msg.ReplyMarkup = s.keyboard
 	msg.ParseMode = `markdown`
 
 	s.handler.Ans(msg)
+
+	return true
 }

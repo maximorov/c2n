@@ -14,7 +14,11 @@ type NeedHelpHandler struct {
 	keyboardHaveTasks tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *NeedHelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *NeedHelpHandler) UserRole() user.Role {
+	return user.Needy
+}
+
+func (s *NeedHelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	usr := ctx.Value(`user`).(*user.User)
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
 	msg.Text = `Ви можете створити нове завдання або переглянути стан своїх актуальних завдань, які ще ні ким не виконані.`
@@ -23,7 +27,8 @@ func (s *NeedHelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	} else {
 		msg.ReplyMarkup = s.keyboard
 	}
-	s.handler.role = "needy"
 
 	s.handler.Ans(msg)
+
+	return true
 }

@@ -6,15 +6,15 @@ import (
 )
 
 func NewService(connPool db.Conn) *Service {
-	return &Service{repo: NewRepo(connPool)}
+	return &Service{Repo: NewRepo(connPool)}
 }
 
 type Service struct {
-	repo *Repository
+	Repo *Repository
 }
 
 func (s *Service) CreateOne(ctx context.Context, userId int, userSocNetId string) (int, error) {
-	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
+	id, err := s.Repo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:    userId,
 		`soc_net_id`: userSocNetId,
 	})
@@ -23,7 +23,7 @@ func (s *Service) CreateOne(ctx context.Context, userId int, userSocNetId string
 }
 
 func (s *Service) GetOneByUserID(ctx context.Context, userID int) (*UserSocNet, error) {
-	user, err := s.repo.FindOne(ctx, []string{`id`, `soc_net_id`}, map[string]interface{}{
+	user, err := s.Repo.FindOne(ctx, []string{`id`, `soc_net_id`}, map[string]interface{}{
 		`user_id`: userID,
 	})
 
@@ -31,7 +31,7 @@ func (s *Service) GetOneByUserID(ctx context.Context, userID int) (*UserSocNet, 
 }
 
 func (s *Service) GetOneBySocNetID(ctx context.Context, userSocNetID string) (*UserSocNet, error) {
-	user, err := s.repo.FindOne(ctx, []string{`id`, `user_id`}, map[string]interface{}{
+	user, err := s.Repo.FindOne(ctx, []string{`id`, `user_id`}, map[string]interface{}{
 		`soc_net_id`: userSocNetID,
 	})
 

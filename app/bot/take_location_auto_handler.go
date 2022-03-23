@@ -12,6 +12,6 @@ type TakeLocationAutoHandler struct {
 	keyboard tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *TakeLocationAutoHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
-
+func (s *TakeLocationAutoHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+	return true
 }

@@ -6,16 +6,15 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
-	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
+	"helpers/app/domains/task/activity"
 	"helpers/app/domains/user"
 	"helpers/app/domains/user/executor"
 	"helpers/app/domains/user/soc_net"
 	"helpers/app/usecase"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -24,16 +23,20 @@ var coordsRegexp, _ = regexp.Compile(`^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]
 func NewMessageHandler(
 	BotApi *tgbotapi.BotAPI,
 	ts *task.Service,
+	tas *activity.Service,
 	er *executor.Repository,
 	es *executor.Service,
 	tuc *usecase.TaskUseCase,
+	snr *soc_net.Repository,
 ) *MessageHandler {
 	res := &MessageHandler{
-		BotApi:          BotApi,
-		TaskService:     ts,
-		ExecutorRepo:    er,
-		ExecutorService: es,
-		TaskUseCase:     tuc,
+		BotApi:              BotApi,
+		TaskService:         ts,
+		TaskActivityService: tas,
+		ExecutorRepo:        er,
+		ExecutorService:     es,
+		TaskUseCase:         tuc,
+		SocNetRepoRepo:      snr,
 	}
 	res.Init()
 
@@ -41,17 +44,22 @@ func NewMessageHandler(
 }
 
 type Handler interface {
-	Handle(context.Context, *tgbotapi.Update)
+	Handle(context.Context, *tgbotapi.Update) bool
+	UserRole() user.Role
 }
 
 type MessageHandler struct {
-	handlers        map[string]Handler
-	BotApi          *tgbotapi.BotAPI
-	TaskService     *task.Service
-	ExecutorRepo    *executor.Repository
-	ExecutorService *executor.Service
-	TaskUseCase     *usecase.TaskUseCase
-	role            string
+	handlers            map[string]Handler
+	replyHandlers       map[string]Handler
+	mainTextHandler     Handler
+	callbackHandler     Handler
+	BotApi              *tgbotapi.BotAPI
+	TaskService         *task.Service
+	TaskActivityService *activity.Service
+	ExecutorRepo        *executor.Repository
+	SocNetRepoRepo      *soc_net.Repository
+	ExecutorService     *executor.Service
+	TaskUseCase         *usecase.TaskUseCase
 }
 
 func (s *MessageHandler) Init() {
@@ -80,16 +88,16 @@ func (s *MessageHandler) Init() {
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto), // collect location
 			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
-			),
+			//tgbotapi.NewKeyboardButtonRow(
+			//	tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
+			//),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandGetLocationManual: &TakeLocationManualyHandler{s, ToMainKeyboard},
-		CommandFiilTaskText:      &WhatFillTaskText{s, ToMainKeyboard},
-		CommandMyTasks:           &ShowMyTasksHandler{s, ToMainKeyboard, CancelTaskKeyboard},
+		//CommandGetLocationManual: &TakeLocationManualyHandler{s, ToMainKeyboard},
+		CommandFiilTaskText: &WhatFillTaskText{s, ToMainKeyboard},
+		CommandMyTasks:      &ShowMyTasksHandler{s, ToMainKeyboard, CancelTaskKeyboard},
 
 		CommandHelp: &HelpHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
@@ -111,9 +119,9 @@ func (s *MessageHandler) Init() {
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto),
 			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
-			),
+			//tgbotapi.NewKeyboardButtonRow(
+			//	tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
+			//),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
@@ -127,118 +135,71 @@ func (s *MessageHandler) Init() {
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		SetExecutorLocation: &AfterExecutorLocationSetHandler{s, SetAreaKeyboard},
-		CommandRadius1:      &SetRadiusHandler{s, SetAreaKeyboard, 1000},
-		CommandRadius3:      &SetRadiusHandler{s, SetAreaKeyboard, 3000},
-		CommandRadius5:      &SetRadiusHandler{s, SetAreaKeyboard, 5000},
-		CommandRadius10:     &SetRadiusHandler{s, SetAreaKeyboard, 10000},
-		CommandNoTasks:      &NoTasksHandler{s, SetAreaKeyboard},
-		CommandSubscribe:    &SubscribeHandler{s, AfterHeadKeyboard, true},
-		CommandUnsubscribe:  &SubscribeHandler{s, AfterHeadKeyboard, false},
+		CommandRadius1:  &SetRadiusHandler{s, SetAreaKeyboard, 1000},
+		CommandRadius3:  &SetRadiusHandler{s, SetAreaKeyboard, 3000},
+		CommandRadius5:  &SetRadiusHandler{s, SetAreaKeyboard, 5000},
+		CommandRadius10: &SetRadiusHandler{s, SetAreaKeyboard, 10000},
+		//CommandNoTasks:      &NoTasksHandler{s, SetAreaKeyboard},
+		CommandSubscribe:   &SubscribeHandler{s, AfterHeadKeyboard, true},
+		CommandUnsubscribe: &SubscribeHandler{s, AfterHeadKeyboard, false},
 	}
+
+	s.replyHandlers = map[string]Handler{
+		DoNotGiveLocationNeedy:    &SetTaskLocationHandler{s, ToMainKeyboard},
+		DoNotGiveLocationExecutor: &SetExecutorLocationHandler{s, SetAreaKeyboard},
+	}
+
+	s.mainTextHandler = &MainTextHandler{s, ToMainKeyboard}
+
+	s.callbackHandler = &CallbackHandler{s}
+}
+
+func (s *MessageHandler) GetUserRole(ctx context.Context, u *tgbotapi.Update) user.Role {
+	return s.DetectHandler(ctx, u).UserRole()
+}
+
+func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) Handler {
+	if u.CallbackData() != `` {
+		return s.callbackHandler
+	}
+
+	if u.Message.ReplyToMessage != nil {
+		if h, ok := s.replyHandlers[u.Message.ReplyToMessage.Text]; ok {
+			return h
+		}
+	}
+
+	snu, err := s.SocNetRepoRepo.FindOne(
+		ctx,
+		[]string{`last_received_message`},
+		sq.Eq{`soc_net_id`: strconv.Itoa(int(u.Message.Chat.ID))},
+	)
+	if err != nil {
+		zap.S().Error(err)
+	}
+	if snu != nil && snu.LastReceivedMessage != `` {
+		if h, ok := s.replyHandlers[snu.LastReceivedMessage]; ok {
+			return h
+		}
+	}
+
+	if h, ok := s.handlers[u.Message.Text]; ok {
+		return h
+	}
+
+	return s.mainTextHandler
 }
 
 func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
-	if h, ok := s.handlers[u.Message.Text]; ok {
-		h.Handle(ctx, u)
-		return
-	}
-
-	usr := ctx.Value(`user`).(*user.User)
-
-	switch {
-	case u.Message.Location != nil:
-		switch s.role {
-		case "needy":
-			err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, u.Message.Location.Latitude, u.Message.Location.Longitude)
-			if err != nil {
-				zap.S().Error(err)
-			}
-			msg := tgbotapi.NewMessage(u.Message.Chat.ID, CommandFiilTaskText)
-			msg.ParseMode = `markdown`
-			msg.ReplyMarkup = ToMainKeyboard
-			s.Ans(msg)
-		case "executor":
-			s.handlers[SetExecutorLocation].Handle(ctx, u)
-		default:
-			msg := tgbotapi.NewMessage(
-				u.Message.Chat.ID,
-				`Спробуйте спочатку. Геолокацію треба вибирати, як зазначено в інструкції.`,
-			)
-			msg.ReplyMarkup = HeadKeyboard
-			s.Ans(msg)
-		}
-	default:
-		switch { // someone enters coordinates manually
-		case coordsRegexp.Match([]byte(u.Message.Text)): // geolocation coordinates
-			lonLat := strings.Split(u.Message.Text, `,`)
-			lat, _ := strconv.ParseFloat(lonLat[0], 64)
-			lon, _ := strconv.ParseFloat(lonLat[1], 64)
-			err := s.TaskUseCase.CreateRawTask(ctx, usr.ID, lat, lon)
-			if err != nil {
-				zap.S().Error(err)
-			}
-			msg := tgbotapi.NewMessage(u.Message.Chat.ID, CommandFiilTaskText)
-			msg.ParseMode = `markdown`
-			msg.ReplyMarkup = ToMainKeyboard
-			s.Ans(msg)
-		default: // any text determines like text of task
-			tsk, err := s.TaskService.GetUsersLastRawTask(ctx, usr.ID)
-			if err != nil {
-				msg := tgbotapi.NewMessage(
-					u.Message.Chat.ID,
-					fmt.Sprintf(`"%s" - Команда не зрозуміла. Спробуйте іншу з варіантів нижче `+SymbLoopDown, u.Message.Text),
-				)
-				s.Ans(msg)
-			} else {
-				tuc := usecase.NewTaskUseCase(db.GetPool())
-				err = tuc.UpdateLastRawWithText(ctx, tsk.ID, u.Message.Text)
-				if err != nil {
-					zap.S().Error(err)
-				}
-				msg := tgbotapi.NewMessage(
-					u.Message.Chat.ID,
-					fmt.Sprintf("Ваше завдання #%d\nОчікуйте повідомлення протягом %d годин\nЩойно волонтер візьметься за ваше завдання, ми вам повідомимо.", tsk.ID, task.TaskDeadline),
-				)
-				msg.ReplyMarkup = ToMainKeyboard
-				s.Ans(msg)
-
-				// Inform executors about new task in their area
-				ts := task.NewService(db.GetPool())
-				snr := soc_net.NewRepo(db.GetPool())
-
-				executors, err := executor.NewRepo(db.GetPool()).FindMany( // find all with inform true
-					ctx,
-					[]string{`user_id`, `position`, `area`},
-					sq.Eq{`inform`: true},
-				)
-				fmt.Println(err)
-				if len(executors) > 0 {
-					tskId := strconv.Itoa(tsk.ID)
-					for _, ex := range executors {
-						dist := ts.CountDistance(tsk.Position, ex.Position)
-						if dist <= float64(ex.Area) {
-							tsk.SetDistance(dist)
-							snUser, err := snr.FindOne(ctx, []string{`soc_net_id`}, sq.Eq{`user_id`: ex.UserId})
-							if err != nil {
-								zap.S().Error(err)
-								continue
-							}
-							socNetId, _ := strconv.Atoi(snUser.SocNetID)
-							tsk.Text = u.Message.Text
-							msg = tgbotapi.NewMessage(
-								int64(socNetId),
-								PrepareTaskText(tsk),
-							)
-							TasksListKeyboard.InlineKeyboard[0][0].CallbackData = core.StrP(`accept:` + tskId)
-							TasksListKeyboard.InlineKeyboard[0][1].CallbackData = core.StrP(`hide:` + tskId)
-							msg.ReplyMarkup = TasksListKeyboard
-							s.Ans(msg)
-						}
-					}
-				}
-			}
-		}
+	handler := s.DetectHandler(ctx, u)
+	if !handler.Handle(ctx, u) {
+		// Else events handler
+		msg := tgbotapi.NewMessage(
+			u.Message.Chat.ID,
+			`Спробуйте спочатку. Геолокацію треба вибирати, як зазначено в інструкції.`,
+		)
+		msg.ReplyMarkup = HeadKeyboard
+		s.Ans(msg)
 	}
 }
 
@@ -247,11 +208,32 @@ func (s *MessageHandler) Ans(msg tgbotapi.Chattable) {
 	if err != nil {
 		zap.S().Error(err)
 	}
+
+	if mc, ok := msg.(tgbotapi.MessageConfig); ok {
+		if mc.Text != `` {
+			_, err = s.SocNetRepoRepo.UpdateOne(
+				context.Background(),
+				map[string]interface{}{`last_received_message`: mc.Text},
+				sq.Eq{`soc_net_id`: strconv.Itoa(int(mc.ChatID))},
+			)
+			if err != nil {
+				zap.S().Error(err)
+			}
+		}
+	}
+
 }
 
 func (s *MessageHandler) AnsError(chatId int64, err error) {
 	msg := tgbotapi.NewMessage(chatId, err.Error())
 	_, err = s.BotApi.Send(msg)
+	if err != nil {
+		zap.S().Error(err)
+	}
+}
+
+func (s *MessageHandler) AnsDelete(msg tgbotapi.DeleteMessageConfig) {
+	_, err := s.BotApi.Request(msg)
 	if err != nil {
 		zap.S().Error(err)
 	}

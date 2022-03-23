@@ -128,7 +128,7 @@ func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, 
 
 	exclude, err = s.repoActivity.FindMany(ctx, []string{`task_id`}, map[string]interface{}{
 		`executor_id`: exId,
-		`status`:      []string{`hidden`, `completed`},
+		`status`:      []string{`hidden`, `completed`, `refused`},
 	})
 	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
 		return nil, err

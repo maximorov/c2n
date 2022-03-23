@@ -20,7 +20,11 @@ type MyActiveTasksHandler struct {
 	keyboard tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *MyActiveTasksHandler) UserRole() user.Role {
+	return user.Executor
+}
+
+func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	usr := ctx.Value(`user`).(*user.User)
 	tasks, err := s.handler.TaskUseCase.GetExecutorUndoneTasks(ctx, usr.ID)
 	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
@@ -30,7 +34,7 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, NoUndoneTasksMessage)
 		msg.ReplyMarkup = s.keyboard
 		s.handler.Ans(msg)
-		return
+		return true
 	}
 
 	for _, t := range tasks {
@@ -52,4 +56,6 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		msg.Text = fmt.Sprintf("%s Завдання #%s\n\n%s\n\n%s", SymbTask, tId, t.Text, pastText)
 		s.handler.Ans(msg)
 	}
+
+	return true
 }

@@ -21,7 +21,11 @@ type ShowMyTasksHandler struct {
 	keyboardM tgbotapi.InlineKeyboardMarkup
 }
 
-func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *ShowMyTasksHandler) UserRole() user.Role {
+	return user.Needy
+}
+
+func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	usr := ctx.Value(`user`).(*user.User)
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
@@ -30,7 +34,7 @@ func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	tasks, err := s.handler.TaskService.GetUserUndoneTasks(ctx, usr.ID)
 	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
 		zap.S().Error(err)
-		return
+		return false
 	}
 
 	if len(tasks) > 0 {
@@ -50,4 +54,6 @@ func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		msg.ReplyMarkup = s.keyboard
 		s.handler.Ans(msg)
 	}
+
+	return true
 }

@@ -18,7 +18,11 @@ type SubscribeHandler struct {
 	subscribe bool
 }
 
-func (s *SubscribeHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *SubscribeHandler) UserRole() user.Role {
+	return user.Executor
+}
+
+func (s *SubscribeHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	usr := ctx.Value(`user`).(*user.User)
 
 	_, err := s.handler.ExecutorService.SetSubscribeInfo(ctx, usr.ID, s.subscribe)
@@ -32,4 +36,6 @@ func (s *SubscribeHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	msg.Text = "Тепер ви не будете отримувати автоматичну розсилку про потребу допомоги поруч \U0001F972"
 
 	s.handler.Ans(msg)
+
+	return true
 }

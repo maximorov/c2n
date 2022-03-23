@@ -20,15 +20,19 @@ type SetRadiusHandler struct {
 	radius   int
 }
 
-func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *SetRadiusHandler) UserRole() user.Role {
+	return user.Executor
+}
+
+func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	usr := ctx.Value(`user`).(*user.User)
-	ex, err := s.handler.ExecutorRepo.FindOne(ctx, []string{`user_id`, `position`, `area`, `inform`},
+	ex, err := s.handler.ExecutorService.Repo.FindOne(ctx, []string{`user_id`, `position`, `area`, `inform`},
 		map[string]interface{}{
 			`user_id`: usr.ID,
 		})
 	if err != nil {
 		zap.S().Error(err)
-		return
+		return false
 	}
 	err = s.setAreaForUser(ctx, usr.ID, s.radius)
 	if err != nil {
@@ -47,7 +51,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 			msg.ReplyMarkup = s.keyboard
 			s.handler.Ans(msg)
 		}
-		return
+		return true
 	}
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
@@ -63,7 +67,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		s.handler.Ans(msg)
 	}
 
-	return
+	return true
 }
 
 func (s *SetRadiusHandler) setAreaForUser(ctx context.Context, userID, area int) error {

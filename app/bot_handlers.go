@@ -29,20 +29,17 @@ func botHandlers(
 	taskRepo := task.NewRepo(connPool)
 	tUC := usecase.NewTaskUseCase(connPool)
 
-	clbkHandler := bot.CallbackHandler{
-		botApi,
-		activity.NewService(connPool),
-		tUC,
-	}
 	msgHandler := bot.NewMessageHandler(
 		botApi,
 		task.NewService(connPool),
+		activity.NewService(connPool),
 		exRepo,
 		executor.NewService(connPool),
 		tUC,
+		soc_net.NewRepo(connPool),
 	)
 
-	go informExecutors(ctx, exRepo, connPool, clbkHandler)
+	go informExecutors(ctx, exRepo, connPool, msgHandler)
 	go setExpired(ctx, taskRepo)
 
 	updates := botApi.GetUpdatesChan(u)
@@ -51,7 +48,7 @@ func botHandlers(
 			ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 			defer cancel()
 
-			usr, err := authenticateUser(ctx, update, connPool)
+			usr, err := authenticateUser(ctx, update, connPool, msgHandler.GetUserRole(ctx, &update))
 			if err != nil {
 				zap.S().Error(err)
 				msgHandler.AnsError(update.Message.Chat.ID, err)
@@ -60,17 +57,12 @@ func botHandlers(
 
 			ctx = context.WithValue(ctx, `user`, usr)
 
-			switch {
-			case update.Message != nil:
-				msgHandler.Handle(ctx, &update)
-			case update.CallbackData() != ``:
-				clbkHandler.Handle(ctx, update)
-			}
+			msgHandler.Handle(ctx, &update)
 		}()
 	}
 }
 
-func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn) (*user.User, error) {
+func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn, role user.Role) (*user.User, error) {
 	var fromId int
 
 	switch {
@@ -108,15 +100,17 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 		userId = usrSoc.UserId
 	}
 
-	u, err := userService.GetOneByID(ctx, userId)
+	usr, err := userService.GetOneByID(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	return u, nil
+	usr.SetRole(role)
+
+	return usr, nil
 }
 
-func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool db.Conn, callBack bot.CallbackHandler) {
+func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool db.Conn, callBack *bot.MessageHandler) {
 	t := time.NewTicker(time.Minute)
 	for {
 		select {

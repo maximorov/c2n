@@ -18,7 +18,11 @@ type HelpHandler struct {
 	keyboardNoTasks tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
+func (s *HelpHandler) UserRole() user.Role {
+	return user.Executor
+}
+
+func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	usr := ctx.Value(`user`).(*user.User)
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
@@ -30,6 +34,7 @@ func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		msg.ReplyMarkup = s.keyboardNoTasks
 	}
 
-	s.handler.role = "executor"
 	s.handler.Ans(msg)
+
+	return true
 }

@@ -105,3 +105,6 @@ alter table tasks_activity
     add constraint tasks_activity_pk
         primary key (executor_id, task_id);
 
+alter table users_soc_nets
+    add last_received_message text default null;
+
