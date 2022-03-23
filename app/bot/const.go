@@ -6,8 +6,6 @@ const (
 	CommandsWillExecute       = SymbOk + "Допоможу"
 	CommandsRefuseForMe       = SymbHide + "Не показувати"
 
-	Information = "тут виводиться довідка"
-
 	SymbSmile      = `😀`
 	SymbAccept     = `✅`
 	SymbRefuse     = `❌`
@@ -39,4 +37,5 @@ const (
 	SymbContact    = `📧`
 	SymbHart       = `❤️`
 	SymbClapper    = `🎬️`
+	SymbHand       = `✋🏻`
 )
