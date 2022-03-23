@@ -35,8 +35,8 @@ func (s *SetExecutorLocationHandler) Handle(ctx context.Context, u *tgbotapi.Upd
 		}
 	} else if coordsRegexp.Match([]byte(u.Message.Text)) {
 		lonLat := strings.Split(u.Message.Text, `,`)
-		lat, _ := strconv.ParseFloat(lonLat[0], 64)
-		lon, _ := strconv.ParseFloat(lonLat[1], 64)
+		lat, _ := strconv.ParseFloat(strings.Trim(lonLat[0], ` `), 64)
+		lon, _ := strconv.ParseFloat(strings.Trim(lonLat[1], ` `), 64)
 		created, err = s.registerExecutor(ctx, lat, lon, usr.ID)
 		if err != nil {
 			zap.S().Error(err)
