@@ -58,7 +58,7 @@ var (
 	)
 	GetLocationKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButtonLocation(CommandGetLocation),
+			tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto),
 		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandTakeLocationManual),

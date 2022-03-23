@@ -6,7 +6,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
-	"helpers/app/bootstrap"
 	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
@@ -79,15 +78,18 @@ func (s *MessageHandler) Init() {
 		)},
 		CommandCreateNewTask: &CreateTaskHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButtonLocation(CommandGetLocation), // collect location
+				tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto), // collect location
+			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
 			),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandTakeLocationManual: &TakeLocationManualyHandler{s, ToMainKeyboard},
-		CommandFiilTaskText:       &WhatFillTaskText{s, ToMainKeyboard},
-		CommandMyTasks:            &ShowMyTasksHandler{s, ToMainKeyboard, CancelTaskKeyboard},
+		CommandGetLocationManual: &TakeLocationManualyHandler{s, ToMainKeyboard},
+		CommandFiilTaskText:      &WhatFillTaskText{s, ToMainKeyboard},
+		CommandMyTasks:           &ShowMyTasksHandler{s, ToMainKeyboard, CancelTaskKeyboard},
 
 		CommandHelp: &HelpHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
@@ -107,7 +109,10 @@ func (s *MessageHandler) Init() {
 		)},
 		CommandTakeNewTask: &TakeNewTaskHandlerHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButtonLocation(CommandGetLocation),
+				tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto),
+			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
 			),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandToMain),
@@ -142,19 +147,6 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	usr := ctx.Value(`user`).(*user.User)
 
 	switch {
-	case u.Message.Contact != nil:
-		phone, err := setContactsFotUser(ctx, u, usr.ID, db.GetPool())
-		if err != nil {
-			zap.S().Error(err)
-			// TODO: and what if error?
-		}
-		if bootstrap.Cnf.Debug {
-			zap.S().Debug("PHONE : %d", phone)
-		}
-
-		msg := tgbotapi.NewMessage(u.Message.Chat.ID, "Поділіться будь-ласка локацією, щоб з люди знали де ви потребуєте допомоги")
-		msg.ReplyMarkup = GetLocationKeyboard
-		s.Ans(msg)
 	case u.Message.Location != nil:
 		switch s.role {
 		case "needy":

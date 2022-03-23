@@ -5,7 +5,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const CommandWriteLocationManually = `Передати координати за допомогою Google Maps`
+const CommandGetLocationManual = `✋🏻Ввести геолокацію вручну(за допомогою google maps)`
 
 type TakeLocationManualyHandler struct {
 	handler  *MessageHandler
@@ -16,7 +16,7 @@ func (s *TakeLocationManualyHandler) Handle(ctx context.Context, u *tgbotapi.Upd
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	// msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
-	msg.Text = CommandWriteLocationManually
+	msg.Text = CommandGetLocationManual
 
 	s.handler.Ans(msg)
 }
