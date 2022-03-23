@@ -89,6 +89,11 @@ var (
 			tgbotapi.NewInlineKeyboardButtonData(CommandsRefuseForMe, ``),
 		),
 	)
+	GoogleMapsKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL(`Google Maps`, `https://www.google.com.ua/maps`),
+		),
+	)
 	ExecutorTasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(SymbAccept+` Виконано`, ``),

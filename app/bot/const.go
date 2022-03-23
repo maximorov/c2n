@@ -5,6 +5,7 @@ const (
 	CommandGetContact         = "Надати контакти"
 	CommandsWillExecute       = SymbOk + "Допоможу"
 	CommandsRefuseForMe       = SymbHide + "Не показувати"
+	GoogleSuggestion          = `Якщо користуєтеся Телеграмом на комп'ютері - введіть геолокацію із сайту Google вручну.`
 
 	SymbSmile      = `😀`
 	SymbAccept     = `✅`

@@ -196,9 +196,9 @@ func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 		// Else events handler
 		msg := tgbotapi.NewMessage(
 			u.Message.Chat.ID,
-			`Спробуйте спочатку. Геолокацію треба вибирати, як зазначено в інструкції.`,
+			`Команда не зрозуміла. Виберіть одну з тих, що нижче. `+SymbLoopDown,
 		)
-		msg.ReplyMarkup = HeadKeyboard
+		//msg.ReplyMarkup = HeadKeyboard
 		s.Ans(msg)
 	}
 }
