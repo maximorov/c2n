@@ -27,7 +27,8 @@ func (s *CreateTaskHandler) Handle(_ context.Context, u *tgbotapi.Update) bool {
 
 	//s.handler.sendVideoHowSendLocation(u.Message.Chat.ID, s.keyboard)
 
-	msg = tgbotapi.NewMessage(u.Message.Chat.ID, fmt.Sprintf("%s %s\nВони матимуть вигляд: %s\n%s", SymbWarning, GoogleSuggestion, `50.44639862968634, 30.521755358513595`, SymbLoopDown))
+	msg = tgbotapi.NewMessage(u.Message.Chat.ID, fmt.Sprintf("%s %s\nВони матимуть вигляд: `%s`", SymbWarning, GoogleSuggestion, `50.44639862968634, 30.521755358513595`))
+	msg.ParseMode = `markdown`
 	msg.ReplyMarkup = GoogleMapsKeyboard
 	s.handler.Ans(msg)
 
