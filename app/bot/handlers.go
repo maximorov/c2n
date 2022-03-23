@@ -159,6 +159,12 @@ func (s *MessageHandler) GetUserRole(ctx context.Context, u *tgbotapi.Update) us
 }
 
 func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) Handler {
+	defer func() {
+		if r := recover(); r != nil {
+			zap.S().Error("Recovering from panic:", r)
+		}
+	}()
+
 	if u.CallbackData() != `` {
 		return s.callbackHandler
 	}
