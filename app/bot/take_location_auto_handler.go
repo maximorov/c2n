@@ -3,15 +3,16 @@ package bot
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"helpers/app/core"
 )
 
-const CommandGetLocationAuto = Symbanchor + " Надати геолокацію"
+const CommandGetLocationAuto = core.Symbanchor + " Надати геолокацію"
 
 type TakeLocationAutoHandler struct {
 	handler  *MessageHandler
 	keyboard tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *TakeLocationAutoHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
-	return true
+func (s *TakeLocationAutoHandler) Handle(_ context.Context, _ *tgbotapi.Update) error {
+	return nil
 }

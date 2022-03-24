@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/task"
 	"helpers/app/domains/task/activity"
@@ -46,7 +47,7 @@ func NewMessageHandler(
 }
 
 type Handler interface {
-	Handle(context.Context, *tgbotapi.Update) bool
+	Handle(context.Context, *tgbotapi.Update) error
 	UserRole() user.Role
 }
 
@@ -212,14 +213,19 @@ func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) 
 
 func (s *MessageHandler) Handle(ctx context.Context, u *tgbotapi.Update) {
 	handler := s.DetectHandler(ctx, u)
-	if handler != nil && !handler.Handle(ctx, u) {
-		// Else events handler
-		msg := tgbotapi.NewMessage(
-			u.Message.Chat.ID,
-			`Команда не зрозуміла. Виберіть одну з тих, що нижче. `+SymbLoopDown,
-		)
-		//msg.ReplyMarkup = HeadKeyboard
-		s.Ans(msg)
+	if handler != nil {
+		err := handler.Handle(ctx, u)
+		if err != nil {
+			switch err.(type) {
+			case *core.ClientError:
+				msg := tgbotapi.NewMessage(u.Message.Chat.ID, err.Error())
+				s.Ans(msg)
+			default:
+				zap.S().Error(err)
+				msg := tgbotapi.NewMessage(u.Message.Chat.ID, core.DefClientError.Error())
+				s.Ans(msg)
+			}
+		}
 	}
 }
 
@@ -259,22 +265,22 @@ func (s *MessageHandler) AnsDelete(msg tgbotapi.DeleteMessageConfig) {
 	}
 }
 
-func setContactsFotUser(ctx context.Context, update *tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
-	su := user.NewService(connPool)
-	userID, err := su.UpdateOne(ctx,
-		map[string]interface{}{
-			`phone_number`: update.Message.Contact.PhoneNumber,
-		}, map[string]interface{}{
-			`id`: userID,
-		})
-	if err != nil {
-		zap.S().Error(err)
-
-		return "", err
-	}
-
-	return update.Message.Contact.PhoneNumber, nil
-}
+//func setContactsFotUser(ctx context.Context, update *tgbotapi.Update, userID int, connPool db.Conn) (string, error) {
+//	su := user.NewService(connPool)
+//	userID, err := su.UpdateOne(ctx,
+//		map[string]interface{}{
+//			`phone_number`: update.Message.Contact.PhoneNumber,
+//		}, map[string]interface{}{
+//			`id`: userID,
+//		})
+//	if err != nil {
+//		zap.S().Error(err)
+//
+//		return "", err
+//	}
+//
+//	return update.Message.Contact.PhoneNumber, nil
+//}
 
 func (s *MessageHandler) setLocationFotUser(ctx context.Context, update *tgbotapi.Update, userID int) error {
 	point := db.CreatePoint(update.Message.Location.Latitude, update.Message.Location.Longitude)
@@ -306,7 +312,7 @@ func PrepareTaskText(task *task.Task) string {
 
 	result := fmt.Sprintf(
 		"%s Завдання #%d\nСтворено %s\n\n%s\n\nВідстань від вас: %.0f метрів",
-		SymbTask, task.ID, pastText, task.Text, task.GetDistance())
+		core.SymbTask, task.ID, pastText, task.Text, task.GetDistance())
 
 	return result
 }

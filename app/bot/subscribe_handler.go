@@ -4,12 +4,13 @@ import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
+	"helpers/app/core"
 	"helpers/app/domains/user"
 )
 
 const (
-	CommandUnsubscribe = SymbHide + " Відписатися від автоматичної розсилки"
-	CommandSubscribe   = SymbCheckboxOn + " Підписатися на автоматичну розсилку"
+	CommandUnsubscribe = core.SymbHide + " Відписатися від автоматичної розсилки"
+	CommandSubscribe   = core.SymbCheckboxOn + " Підписатися на автоматичну розсилку"
 )
 
 type SubscribeHandler struct {
@@ -22,7 +23,7 @@ func (s *SubscribeHandler) UserRole() user.Role {
 	return user.Executor
 }
 
-func (s *SubscribeHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *SubscribeHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 
 	_, err := s.handler.ExecutorService.SetSubscribeInfo(ctx, usr.ID, s.subscribe)
@@ -37,5 +38,5 @@ func (s *SubscribeHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool 
 
 	s.handler.Ans(msg)
 
-	return true
+	return nil
 }

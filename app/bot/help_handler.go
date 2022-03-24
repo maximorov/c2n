@@ -3,14 +3,15 @@ package bot
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"helpers/app/core"
 	"helpers/app/domains/user"
 )
 
-const CommandHelp = SymbStrength + " Допомогти"
-const CommandTakeNewTaskText = `Тут ви можете бачити ваші поточні завдання. А поки, тицяйте кнопку нижче ` + SymbLoopDown
+const CommandHelp = core.SymbStrength + " Допомогти"
+const CommandTakeNewTaskText = `Тут ви можете бачити ваші поточні завдання. А поки, тицяйте кнопку нижче ` + core.SymbLoopDown
 const CommandListMyTasksText = `Ви можете переглянути свої поточні завдання, або знайти нове.`
-const CommandMyActiveTasks = SymbClipbord + " Завдання в роботі"
-const CommandTakeNewTask = SymbWork + " Узяти нове завдання"
+const CommandMyActiveTasks = core.SymbClipbord + " Завдання в роботі"
+const CommandTakeNewTask = core.SymbWork + " Узяти нове завдання"
 
 type HelpHandler struct {
 	handler         *MessageHandler
@@ -22,7 +23,7 @@ func (s *HelpHandler) UserRole() user.Role {
 	return user.Executor
 }
 
-func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
@@ -36,5 +37,5 @@ func (s *HelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 
 	s.handler.Ans(msg)
 
-	return true
+	return nil
 }

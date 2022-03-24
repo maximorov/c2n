@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jackc/pgx/v4"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"helpers/app/core"
 	"helpers/app/domains/task"
@@ -13,7 +11,7 @@ import (
 	"strconv"
 )
 
-const CommandMyTasks = SymbWork + ` Мої завдання`
+const CommandMyTasks = core.SymbWork + ` Мої завдання`
 
 type ShowMyTasksHandler struct {
 	handler   *MessageHandler
@@ -25,16 +23,15 @@ func (s *ShowMyTasksHandler) UserRole() user.Role {
 	return user.Needy
 }
 
-func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
 	kb := s.keyboardM
 
 	tasks, err := s.handler.TaskService.GetUserUndoneTasks(ctx, usr.ID)
-	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
-		zap.S().Error(err)
-		return false
+	if core.IsRealError(err) {
+		return err
 	}
 
 	if len(tasks) > 0 {
@@ -46,7 +43,7 @@ func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) boo
 			}
 			kb.InlineKeyboard[0][0].CallbackData = core.StrP(CancelCallback + `:` + strconv.Itoa(tsk.ID))
 			msg.ReplyMarkup = kb
-			msg.Text = fmt.Sprintf(SymbTask+" Завдання #%d\n\n%s\n\n- %s", tsk.ID, tsk.Text, statusTranslate)
+			msg.Text = fmt.Sprintf(core.SymbTask+" Завдання #%d\n\n%s\n\n- %s", tsk.ID, tsk.Text, statusTranslate)
 			s.handler.Ans(msg)
 		}
 	} else {
@@ -55,5 +52,5 @@ func (s *ShowMyTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) boo
 		s.handler.Ans(msg)
 	}
 
-	return true
+	return nil
 }

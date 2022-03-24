@@ -1,11 +1,11 @@
-package bot
+package core
 
 const (
-	CommandTakeLocationManual = "Уведіть координати вручу."
-	CommandGetContact         = "Надати контакти"
-	CommandsWillExecute       = SymbOk + "Допоможу"
-	CommandsRefuseForMe       = SymbHide + "Не показувати"
-	GoogleSuggestion          = `Ви також можете взяти геолокацію із сайту Google і скопіювати сюди у форматі.`
+	//CommandTakeLocationManual = "Уведіть координати вручу."
+	//CommandGetContact         = "Надати контакти"
+	CommandsWillExecute = SymbOk + "Допоможу"
+	CommandsRefuseForMe = SymbHide + "Не показувати"
+	GoogleSuggestion    = `Ви також можете взяти геолокацію із сайту Google і скопіювати сюди у форматі.`
 
 	SymbSmile      = `😀`
 	SymbAccept     = `✅`
@@ -42,4 +42,5 @@ const (
 	SymbPhone      = `📱`
 	SymbLock       = `🔒`
 	SymbTV         = `📺`
+	SymbLoading    = `⌛`
 )

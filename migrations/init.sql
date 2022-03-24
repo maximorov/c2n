@@ -20,7 +20,7 @@ create table if not exists tasks
     position point                                                                 not null,
     status   enum_tasks_status default 'raw'::enum_tasks_status                    not null,
     text     varchar(255)                                                          not null,
-    deadline timestamp         default (CURRENT_TIMESTAMP + '1 day'::interval day) not null,
+    deadline timestamp         default (CURRENT_TIMESTAMP + '2 day'::interval day) not null,
     created  timestamp         default CURRENT_TIMESTAMP                           not null,
     updated  timestamp
 );

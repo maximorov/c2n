@@ -2,6 +2,7 @@ package bot
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"helpers/app/core"
 )
 
 var (
@@ -48,33 +49,33 @@ var (
 			tgbotapi.NewKeyboardButton(CommandToMain),
 		),
 	)
-	GetContactsKeyboard = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButtonContact(CommandGetContact),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandToMain),
-		),
-	)
-	GetLocationKeyboard = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandTakeLocationManual),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandToMain),
-		),
-	)
-	SubscribeKeyboard = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandSubscribe),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CommandToMain),
-		),
-	)
+	//GetContactsKeyboard = tgbotapi.NewReplyKeyboard(
+	//	tgbotapi.NewKeyboardButtonRow(
+	//		tgbotapi.NewKeyboardButtonContact(core.CommandGetContact),
+	//	),
+	//	tgbotapi.NewKeyboardButtonRow(
+	//		tgbotapi.NewKeyboardButton(CommandToMain),
+	//	),
+	//)
+	//GetLocationKeyboard = tgbotapi.NewReplyKeyboard(
+	//	tgbotapi.NewKeyboardButtonRow(
+	//		tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto),
+	//	),
+	//	tgbotapi.NewKeyboardButtonRow(
+	//		tgbotapi.NewKeyboardButton(core.CommandTakeLocationManual),
+	//	),
+	//	tgbotapi.NewKeyboardButtonRow(
+	//		tgbotapi.NewKeyboardButton(CommandToMain),
+	//	),
+	//)
+	//SubscribeKeyboard = tgbotapi.NewReplyKeyboard(
+	//	tgbotapi.NewKeyboardButtonRow(
+	//		tgbotapi.NewKeyboardButton(CommandSubscribe),
+	//	),
+	//	tgbotapi.NewKeyboardButtonRow(
+	//		tgbotapi.NewKeyboardButton(CommandToMain),
+	//	),
+	//)
 	UnsubscribeKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandUnsubscribe),
@@ -85,8 +86,8 @@ var (
 	)
 	TasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(CommandsWillExecute, ``),
-			tgbotapi.NewInlineKeyboardButtonData(CommandsRefuseForMe, ``),
+			tgbotapi.NewInlineKeyboardButtonData(core.CommandsWillExecute, ``),
+			tgbotapi.NewInlineKeyboardButtonData(core.CommandsRefuseForMe, ``),
 		),
 	)
 	GoogleMapsKeyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -96,8 +97,8 @@ var (
 	)
 	ExecutorTasksListKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(SymbAccept+` Виконано`, ``),
-			tgbotapi.NewInlineKeyboardButtonData(SymbRefuse+` Відмовитися`, ``),
+			tgbotapi.NewInlineKeyboardButtonData(core.SymbAccept+` Виконано`, ``),
+			tgbotapi.NewInlineKeyboardButtonData(core.SymbRefuse+` Відмовитися`, ``),
 		),
 	)
 	ReopenTaskKeyboard = tgbotapi.NewInlineKeyboardMarkup(

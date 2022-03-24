@@ -4,6 +4,7 @@ import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
+	"helpers/app/core"
 	"helpers/app/domains/user"
 	"strconv"
 	"strings"
@@ -18,7 +19,7 @@ func (s *SetTaskLocationHandler) UserRole() user.Role {
 	return user.Needy
 }
 
-func (s *SetTaskLocationHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *SetTaskLocationHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 
 	if u.Message.Location != nil {
@@ -35,7 +36,7 @@ func (s *SetTaskLocationHandler) Handle(ctx context.Context, u *tgbotapi.Update)
 			zap.S().Error(err)
 		}
 	} else {
-		return false
+		return core.NewClientError(`Локація не зрозуміла`)
 	}
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, CommandFiilTaskText)
@@ -43,5 +44,5 @@ func (s *SetTaskLocationHandler) Handle(ctx context.Context, u *tgbotapi.Update)
 	msg.ReplyMarkup = ToMainKeyboard
 	s.handler.Ans(msg)
 
-	return true
+	return nil
 }

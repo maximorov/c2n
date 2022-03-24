@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"helpers/app/core"
 	"helpers/app/core/db"
 	"helpers/app/domains/user"
 	"strconv"
@@ -22,7 +23,7 @@ func (s *SetExecutorLocationHandler) UserRole() user.Role {
 	return user.Executor
 }
 
-func (s *SetExecutorLocationHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *SetExecutorLocationHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 
 	var err error
@@ -42,7 +43,7 @@ func (s *SetExecutorLocationHandler) Handle(ctx context.Context, u *tgbotapi.Upd
 			zap.S().Error(err)
 		}
 	} else {
-		return false
+		return core.NewClientError(`Локація не зрозуміла`)
 	}
 
 	if created {
@@ -51,11 +52,11 @@ func (s *SetExecutorLocationHandler) Handle(ctx context.Context, u *tgbotapi.Upd
 		s.handler.Ans(msg)
 	}
 
-	msg := tgbotapi.NewMessage(u.Message.Chat.ID, SymbCompass+" Оберіть можливий радіус надання допомоги.")
+	msg := tgbotapi.NewMessage(u.Message.Chat.ID, core.SymbCompass+" Оберіть можливий радіус надання допомоги.")
 	msg.ReplyMarkup = s.keyboard
 	s.handler.Ans(msg)
 
-	return true
+	return nil
 }
 
 func (s *SetExecutorLocationHandler) registerExecutor(ctx context.Context, lat, lon float64, userID int) (bool, error) {

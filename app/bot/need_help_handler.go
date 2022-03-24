@@ -3,10 +3,11 @@ package bot
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"helpers/app/core"
 	"helpers/app/domains/user"
 )
 
-const CommandNeedHelp = SymbSOS + " Попросити про допомогу"
+const CommandNeedHelp = core.SymbSOS + " Попросити про допомогу"
 
 type NeedHelpHandler struct {
 	handler           *MessageHandler
@@ -18,7 +19,7 @@ func (s *NeedHelpHandler) UserRole() user.Role {
 	return user.Needy
 }
 
-func (s *NeedHelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *NeedHelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
 	msg.Text = `Ви можете створити нове завдання або переглянути стан своїх актуальних завдань, які ще ні ким не виконані.`
@@ -30,5 +31,5 @@ func (s *NeedHelpHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 
 	s.handler.Ans(msg)
 
-	return true
+	return nil
 }

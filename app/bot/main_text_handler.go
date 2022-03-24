@@ -14,6 +14,7 @@ import (
 	"helpers/app/domains/user/soc_net"
 	"helpers/app/usecase"
 	"strconv"
+	"unicode/utf8"
 )
 
 type MainTextHandler struct {
@@ -25,17 +26,21 @@ func (s *MainTextHandler) UserRole() user.Role {
 	return user.Unknown
 }
 
-func (s *MainTextHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *MainTextHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 
 	tsk, err := s.handler.TaskService.GetUsersLastRawTask(ctx, usr.ID)
 	if err != nil {
-		if err != nil {
+		if core.IsRealError(err) {
 			zap.S().Error(err)
 		}
-		return false
+		return core.DefClientError
 	} else {
 		tuc := usecase.NewTaskUseCase(db.GetPool())
+		// validation
+		if utf8.RuneCountInString(u.Message.Text) > task.TaskTextLength {
+			return core.NewClientError(core.SymbWarning + ` Завдання не створено: забагато текста`)
+		}
 		err = tuc.UpdateLastRawWithText(ctx, tsk.ID, u.Message.Text)
 		if err != nil {
 			zap.S().Error(err)
@@ -56,7 +61,9 @@ func (s *MainTextHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 			[]string{`user_id`, `position`, `area`},
 			sq.Eq{`inform`: true},
 		)
-		fmt.Println(err)
+		if core.IsRealError(err) {
+			zap.S().Error(err)
+		}
 		if len(executors) > 0 {
 			tskId := strconv.Itoa(tsk.ID)
 			for _, ex := range executors {
@@ -83,5 +90,5 @@ func (s *MainTextHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		}
 	}
 
-	return true
+	return nil
 }

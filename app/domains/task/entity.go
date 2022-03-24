@@ -56,6 +56,8 @@ var AllowedStatuses = map[string]map[string]bool{
 	StatusRefused: {},
 }
 
+const TaskTextLength = 255
+
 type Task struct {
 	ID       int `table_name:"tasks"`
 	UserID   int

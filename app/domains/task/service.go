@@ -48,9 +48,6 @@ func (s *Service) GetUsersLastRawTask(ctx context.Context, userId int) (*Task, e
 		OrderBy(`created DESC`).
 		Limit(1)
 	err := core.FindOneSB(ctx, s.repo.Conn(), sb, task)
-	if err != nil {
-		zap.S().Error(err)
-	}
 
 	return task, err
 }

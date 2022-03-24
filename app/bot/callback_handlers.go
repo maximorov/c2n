@@ -18,10 +18,10 @@ import (
 	"time"
 )
 
-const ReopenText = SymbClapper + ` Перевідкрити`
+const ReopenText = core.SymbClapper + ` Перевідкрити`
 const ReopenCallback = `reopen`
 
-const CancelText = SymbRefuse + ` Видалити завдання`
+const CancelText = core.SymbRefuse + ` Видалити завдання`
 const CancelCallback = `cancel`
 
 type CallbackHandler struct {
@@ -32,16 +32,14 @@ func (s *CallbackHandler) UserRole() user.Role {
 	return user.Unknown
 }
 
-func (s *CallbackHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *CallbackHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
-	handled := false
 
 	callbackData := u.CallbackData()
 	if !strings.Contains(callbackData, `:`) {
-		return false
+		return core.DefClientError
 	}
 
-	handled = true
 	parsed := strings.Split(u.CallbackData(), `:`)
 	action := parsed[0]
 	taskId, _ := strconv.Atoi(parsed[1])
@@ -53,7 +51,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	)
 	if err != nil {
 		zap.S().Error(err)
-		return false
+		return core.NewClientError(`Задачу не знайдено`)
 	}
 	timePast := tsk.Deadline.Sub(time.Now()).Hours()
 
@@ -81,7 +79,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		ex, err := exRepo.FindOne(ctx, []string{`position`}, sq.Eq{`user_id`: usr.ID})
 		if err != nil {
 			zap.S().Error(err)
-			return true
+			return nil
 		}
 		dist := ts.CountDistance(tsk.Position, ex.Position)
 
@@ -99,7 +97,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		err := s.handler.TaskActivityService.CreateActivity(ctx, usr.ID, taskId, `hidden`)
 		if err != nil {
 			zap.S().Error(err)
-			return true
+			return nil
 		}
 		msgDel := tgbotapi.NewDeleteMessage(u.CallbackQuery.Message.Chat.ID, u.CallbackQuery.Message.MessageID)
 		s.handler.AnsDelete(msgDel)
@@ -109,6 +107,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		err := s.handler.TaskActivityService.UpdateActivity(ctx, usr.ID, taskId, `completed`)
 		if err != nil {
 			zap.S().Error(err)
+			return nil
 		}
 		msgDel := tgbotapi.NewDeleteMessage(u.CallbackQuery.Message.Chat.ID, u.CallbackQuery.Message.MessageID)
 		s.handler.AnsDelete(msgDel)
@@ -119,6 +118,7 @@ func (s *CallbackHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 		err := s.handler.TaskActivityService.UpdateActivity(ctx, usr.ID, taskId, `refused`)
 		if err != nil {
 			zap.S().Error(err)
+			return nil
 		}
 		msgDel := tgbotapi.NewDeleteMessage(u.CallbackQuery.Message.Chat.ID, u.CallbackQuery.Message.MessageID)
 		s.handler.AnsDelete(msgDel)
@@ -138,11 +138,10 @@ func (s *CallbackHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 			s.handler.Ans(msg)
 		}
 	default:
-		zap.S().Error(`callback didnt processed`)
-		handled = false
+		return core.NewClientError(`Команда не оброблена`)
 	}
 
-	return handled
+	return nil
 }
 
 func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status string) {
@@ -172,7 +171,7 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 			return
 		}
 	case `complete`:
-		msg.Text = fmt.Sprintf(SymbTask+" Завдання #%d\n"+
+		msg.Text = fmt.Sprintf(core.SymbTask+" Завдання #%d\n"+
 			"Позначено виконаним. Якщо це не так, натисніть на кнопку\n"+
 			"[%s]", tId, ReopenText)
 		err := s.handler.TaskUseCase.UpdateTaskStatus(ctx, tId, task.StatusDone)
@@ -181,7 +180,7 @@ func (s *CallbackHandler) informNeedy(ctx context.Context, tId int, status strin
 			return
 		}
 	case `taken`:
-		msg.Text = fmt.Sprintf(SymbTask+" Завдання #%d\n"+
+		msg.Text = fmt.Sprintf(core.SymbTask+" Завдання #%d\n"+
 			"Хтось узяв його у роботу.\n"+
 			"Якщо протягом декількох годин ви не отримали повідомлення від волонтера, "+
 			"натисніть на кнопку\n[%s]\nМи будемо шукати іншого.", tId, ReopenText)

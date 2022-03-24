@@ -3,10 +3,11 @@ package bot
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"helpers/app/core"
 	"helpers/app/domains/user"
 )
 
-const CommandGetLocationManual = SymbHand + ` Ввести геолокацію вручну(за допомогою google maps)`
+const CommandGetLocationManual = core.SymbHand + ` Ввести геолокацію вручну(за допомогою google maps)`
 
 type TakeLocationManualyHandler struct {
 	handler  *MessageHandler
@@ -17,7 +18,7 @@ func (s *TakeLocationManualyHandler) UserRole() user.Role {
 	return user.Executor
 }
 
-func (s *TakeLocationManualyHandler) Handle(_ context.Context, u *tgbotapi.Update) bool {
+func (s *TakeLocationManualyHandler) Handle(_ context.Context, u *tgbotapi.Update) error {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	// msg.ReplyToMessageID = u.Message.MessageID
 	msg.ReplyMarkup = s.keyboard
@@ -25,5 +26,5 @@ func (s *TakeLocationManualyHandler) Handle(_ context.Context, u *tgbotapi.Updat
 
 	s.handler.Ans(msg)
 
-	return true
+	return nil
 }

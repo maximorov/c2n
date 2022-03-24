@@ -3,12 +3,13 @@ package bot
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"helpers/app/core"
 	"helpers/app/domains/user"
 )
 
 const (
-	CommandSendVideoHowHelp    = "Відеоінструкція як попросити про допомогу"
-	CommandSendVideoHowGetHelp = "Відеоінструкція як знайти людей, які потребують допомоги"
+	CommandSendVideoHowHelp    = "Відеоінструкція як попросити про допомогу.\n\nВідео завантажується " + core.SymbLoading
+	CommandSendVideoHowGetHelp = "Відеоінструкція як знайти людей, які потребують допомоги.\n\nВідео завантажується..." + core.SymbLoading
 )
 
 type SupportInformationHendler struct {
@@ -21,8 +22,7 @@ func (s *SupportInformationHendler) UserRole() user.Role {
 	return user.Executor
 }
 
-func (s *SupportInformationHendler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
-
+func (s *SupportInformationHendler) Handle(_ context.Context, u *tgbotapi.Update) error {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	msg.ReplyMarkup = s.keyboard
 	msg.ParseMode = `markdown`
@@ -39,5 +39,5 @@ func (s *SupportInformationHendler) Handle(ctx context.Context, u *tgbotapi.Upda
 
 	s.handler.Ans(msg)
 
-	return true
+	return nil
 }

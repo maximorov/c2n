@@ -9,10 +9,10 @@ import (
 	"strconv"
 )
 
-const CommandRadius1 = "Радіус " + Symb1 + " км"
-const CommandRadius3 = "Радіус " + Symb3 + " км"
-const CommandRadius5 = "Радіус " + Symb5 + " км"
-const CommandRadius10 = "Радіус " + Symb1 + Symb0 + " км"
+const CommandRadius1 = "Радіус " + core.Symb1 + " км"
+const CommandRadius3 = "Радіус " + core.Symb3 + " км"
+const CommandRadius5 = "Радіус " + core.Symb5 + " км"
+const CommandRadius10 = "Радіус " + core.Symb1 + core.Symb0 + " км"
 
 type SetRadiusHandler struct {
 	handler  *MessageHandler
@@ -24,15 +24,14 @@ func (s *SetRadiusHandler) UserRole() user.Role {
 	return user.Executor
 }
 
-func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 	ex, err := s.handler.ExecutorService.Repo.FindOne(ctx, []string{`user_id`, `position`, `area`, `inform`},
 		map[string]interface{}{
 			`user_id`: usr.ID,
 		})
 	if err != nil {
-		zap.S().Error(err)
-		return false
+		return err
 	}
 	err = s.setAreaForUser(ctx, usr.ID, s.radius)
 	if err != nil {
@@ -51,7 +50,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool 
 			msg.ReplyMarkup = s.keyboard
 			s.handler.Ans(msg)
 		}
-		return true
+		return nil
 	}
 
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, ``)
@@ -67,7 +66,7 @@ func (s *SetRadiusHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool 
 		s.handler.Ans(msg)
 	}
 
-	return true
+	return nil
 }
 
 func (s *SetRadiusHandler) setAreaForUser(ctx context.Context, userID, area int) error {

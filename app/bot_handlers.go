@@ -166,7 +166,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 						callBack.Ans(msg)
 					}
 					msg.ReplyMarkup = bot.UnsubscribeKeyboard
-					msg.Text = `Якщо ви не хочете отримувати автоматичну розсилку, натисніть ` + bot.SymbHide
+					msg.Text = `Якщо ви не хочете отримувати автоматичну розсилку, натисніть ` + core.SymbHide
 					callBack.Ans(msg)
 				}
 			}(ctx)

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jackc/pgx/v4"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"helpers/app/core"
 	"helpers/app/domains/user"
@@ -24,17 +22,17 @@ func (s *MyActiveTasksHandler) UserRole() user.Role {
 	return user.Executor
 }
 
-func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
+func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) error {
 	usr := ctx.Value(`user`).(*user.User)
 	tasks, err := s.handler.TaskUseCase.GetExecutorUndoneTasks(ctx, usr.ID)
-	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
+	if core.IsRealError(err) {
 		zap.S().Error(err)
 	}
 	if len(tasks) == 0 {
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, NoUndoneTasksMessage)
 		msg.ReplyMarkup = s.keyboard
 		s.handler.Ans(msg)
-		return true
+		return nil
 	}
 
 	for _, t := range tasks {
@@ -53,9 +51,9 @@ func (s *MyActiveTasksHandler) Handle(ctx context.Context, u *tgbotapi.Update) b
 
 		msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 		msg.ReplyMarkup = ExecutorTasksListKeyboard
-		msg.Text = fmt.Sprintf("%s Завдання #%s\n\n%s\n\n%s", SymbTask, tId, t.Text, pastText)
+		msg.Text = fmt.Sprintf("%s Завдання #%s\n\n%s\n\n%s", core.SymbTask, tId, t.Text, pastText)
 		s.handler.Ans(msg)
 	}
 
-	return true
+	return nil
 }
