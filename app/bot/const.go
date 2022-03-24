@@ -19,6 +19,7 @@ const (
 	SymbTask       = `📜`
 	Symbanchor     = `⚓`
 	SymbInfo       = `ℹ️`
+	SymbTV         = `📺`
 	SymbClip       = `📎`
 	SymbWarning    = `⚠️`
 	SymbHello      = `👋`
@@ -40,4 +41,5 @@ const (
 	SymbClapper    = `🎬️`
 	SymbHand       = `✋🏻`
 	SymbPhone      = `📱`
+	SymbLock       = `🔒`
 )

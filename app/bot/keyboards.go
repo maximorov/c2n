@@ -110,4 +110,15 @@ var (
 			tgbotapi.NewInlineKeyboardButtonData(CancelText, ``),
 		),
 	)
+	SupportInformationKeyboard = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandSendVideoHowHelp),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandSendVideoHowGetHelp),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandToMain),
+		),
+	)
 )

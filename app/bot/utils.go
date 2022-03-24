@@ -11,3 +11,19 @@ func (s *MessageHandler) sendVideoHowSendLocation(chatID int64, kb tgbotapi.Repl
 
 	s.Ans(ans)
 }
+
+func (s *MessageHandler) sendVideoHowToHelp(chatID int64, kb tgbotapi.ReplyKeyboardMarkup) {
+	ans := tgbotapi.NewVideo(chatID, tgbotapi.FilePath("files/video/howToHelp.mp4"))
+	ans.ReplyMarkup = kb
+	//ans.Caption = ""
+
+	s.Ans(ans)
+}
+
+func (s *MessageHandler) sendVideoHowToGetHelp(chatID int64, kb tgbotapi.ReplyKeyboardMarkup) {
+	ans := tgbotapi.NewVideo(chatID, tgbotapi.FilePath("files/video/howToGetHelp.mp4"))
+	ans.ReplyMarkup = kb
+	//ans.Caption = ""
+
+	s.Ans(ans)
+}

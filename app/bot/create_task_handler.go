@@ -9,7 +9,7 @@ import (
 
 const CommandCreateNewTask = SymbCreate + ` Створити завдання`
 const CommandNeedCollectLocation = `We need to collect info about you`
-const DoNotGiveLocationNeedy = SymbOk + ` Ми нікому не передаємо вашу геолокацію`
+const DoNotGiveLocationNeedy = SymbOk + ` Ми нікому не передаємо вашу геолокацію` + "\n" + SymbLock + "Інщі користувачі також її не побачать"
 
 type CreateTaskHandler struct {
 	handler  *MessageHandler
@@ -25,7 +25,7 @@ func (s *CreateTaskHandler) Handle(_ context.Context, u *tgbotapi.Update) bool {
 	msg.ReplyMarkup = s.keyboard
 	s.handler.Ans(msg)
 
-	//s.handler.sendVideoHowSendLocation(u.Message.Chat.ID, s.keyboard)
+	s.handler.sendVideoHowSendLocation(u.Message.Chat.ID, s.keyboard)
 
 	msg = tgbotapi.NewMessage(u.Message.Chat.ID, fmt.Sprintf("%s %s\nВони матимуть вигляд: \n`%s`", SymbWarning, GoogleSuggestion, `50.44639862968634, 30.521755358513595`))
 	msg.ParseMode = `markdown`

@@ -7,7 +7,7 @@ import (
 	"helpers/app/domains/user"
 )
 
-const DoNotGiveLocationExecutor = SymbHart + ` Ми нікому не передаємо вашу геолокацію`
+const DoNotGiveLocationExecutor = SymbHart + ` Ми нікому не передаємо вашу геолокацію` + "\n" + SymbLock + "Інщі користувачі також її не побачать"
 
 type TakeNewTaskHandlerHandler struct {
 	handler  *MessageHandler

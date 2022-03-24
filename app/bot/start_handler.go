@@ -28,7 +28,7 @@ func (s *StartHandler) Handle(ctx context.Context, u *tgbotapi.Update) bool {
 	msg := tgbotapi.NewMessage(u.Message.Chat.ID, u.Message.Text)
 	msg.ReplyMarkup = s.keyboard
 	msg.ParseMode = `markdown`
-	msg.Text = fmt.Sprintf("*%s*\n\n%s\n\n%s\n\n%s", SymbSmile+` `+BotTitle, SymbHello+` `+HelloText, SymbWarning+` `+BeCareful, Contacts)
+	msg.Text = fmt.Sprintf("*%s*\n\n%s\n\n%s\n\n%s\n\n%s", SymbSmile+` `+BotTitle, SymbHello+` `+HelloText, SymbWarning+` `+BeCareful, VideoInstruct, Contacts)
 
 	s.handler.Ans(msg)
 

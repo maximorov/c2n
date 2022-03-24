@@ -68,7 +68,7 @@ func (s *MessageHandler) Init() {
 	s.handlers = map[string]Handler{
 		CommandStart:       &StartHandler{s, HeadKeyboard},
 		CommandToMain:      &StartHandler{s, HeadKeyboard},
-		CommandInformation: &AboutHandler{s, AfterHeadKeyboard},
+		CommandInformation: &AboutHandler{s, SupportInformationKeyboard},
 
 		CommandNeedHelp: &NeedHelpHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
@@ -142,8 +142,10 @@ func (s *MessageHandler) Init() {
 		CommandRadius5:  &SetRadiusHandler{s, SetAreaKeyboard, 5000},
 		CommandRadius10: &SetRadiusHandler{s, SetAreaKeyboard, 10000},
 		//CommandNoTasks:      &NoTasksHandler{s, SetAreaKeyboard},
-		CommandSubscribe:   &SubscribeHandler{s, AfterHeadKeyboard, true},
-		CommandUnsubscribe: &SubscribeHandler{s, AfterHeadKeyboard, false},
+		CommandSubscribe:           &SubscribeHandler{s, AfterHeadKeyboard, true},
+		CommandUnsubscribe:         &SubscribeHandler{s, AfterHeadKeyboard, false},
+		CommandSendVideoHowHelp:    &SupportInformationHendler{s, SupportInformationKeyboard, CommandSendVideoHowHelp},
+		CommandSendVideoHowGetHelp: &SupportInformationHendler{s, SupportInformationKeyboard, CommandSendVideoHowGetHelp},
 	}
 
 	s.replyHandlers = map[string]Handler{
