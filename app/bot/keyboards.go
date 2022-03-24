@@ -36,6 +36,20 @@ var (
 			tgbotapi.NewKeyboardButton(CommandToMain),
 		),
 	)
+	AttachLocationKeyboard = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto), // collect location
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandGetLocationHotTo),
+		),
+		//tgbotapi.NewKeyboardButtonRow(
+		//	tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
+		//),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CommandToMain),
+		),
+	)
 	SetAreaKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CommandRadius1),

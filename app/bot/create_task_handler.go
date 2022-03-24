@@ -22,13 +22,11 @@ func (s *CreateTaskHandler) UserRole() user.Role {
 }
 
 func (s *CreateTaskHandler) Handle(_ context.Context, u *tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(u.Message.Chat.ID, `Перш ніж отримати допомогу, вам треба вказати, де ви знаходитесь. Поділіться, будь ласка, локацією, натиснувши кнопку `+"\n\n["+CommandGetLocationAuto+"]\n\n"+`Або якщо ви хочете обрати іншу локацію, оберіть її за допомогою кнопки `+core.SymbClip /*+`, як вказано на відео нижче `+SymbLoopDown*/)
-	msg.ReplyMarkup = s.keyboard
-	s.handler.Ans(msg)
-
-	s.handler.sendVideoHowSendLocation(u.Message.Chat.ID, s.keyboard)
-
-	msg = tgbotapi.NewMessage(u.Message.Chat.ID, fmt.Sprintf("%s %s\nВони матимуть вигляд: \n`%s`", core.SymbWarning, core.GoogleSuggestion, `50.44639862968634, 30.521755358513595`))
+	text := fmt.Sprintf("*Перш ніж отримати допомогу, вам треба вказати, де ви знаходитесь.*\n\n"+
+		"- Ви можете поділитися локацією, натиснувши кнопку *%s* _(лише для Android, iOS)_\n"+
+		"- Або якщо ви хочете обрати іншу локацію, прикріпити її, натиснувши %s _(лише для Android, iOS)_\n"+
+		"- %s", CommandGetLocationAuto, core.SymbClip, core.GoogleSuggestion)
+	msg := tgbotapi.NewMessage(u.Message.Chat.ID, text)
 	msg.ParseMode = `markdown`
 	msg.ReplyMarkup = GoogleMapsKeyboard
 	s.handler.Ans(msg)

@@ -10,27 +10,21 @@ import (
 
 const DoNotGiveLocationExecutor = core.SymbHart + ` Ми нікому не передаємо вашу геолокацію` + "\n" + core.SymbLock + "Інщі користувачі також її не побачать"
 
-type TakeNewTaskHandlerHandler struct {
+type TakeNewTaskHandler struct {
 	handler  *MessageHandler
 	keyboard tgbotapi.ReplyKeyboardMarkup
 }
 
-func (s *TakeNewTaskHandlerHandler) UserRole() user.Role {
+func (s *TakeNewTaskHandler) UserRole() user.Role {
 	return user.Executor
 }
 
-func (s *TakeNewTaskHandlerHandler) Handle(_ context.Context, u *tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(u.Message.Chat.ID, `Перш ніж отримати завдання, вам треба вказати територію, на якій ви можете допомогти.`)
-	msg.ReplyMarkup = s.keyboard
-	s.handler.Ans(msg)
-
-	msg = tgbotapi.NewMessage(u.Message.Chat.ID, `Поділіться, будь-ласка, локацією, натиснувши кнопку `+"\n\n["+CommandGetLocationAuto+"]\n\n"+`(Працює лише на телефоні)`+core.SymbPhone+"\n"+`Або якщо ви хочете обрати іншу локацію, оберіть її за допомогою кнопки `+core.SymbClip+`, як вказано на відео нижче `+core.SymbLoopDown)
-	msg.ReplyMarkup = s.keyboard
-	s.handler.Ans(msg)
-
-	s.handler.sendVideoHowSendLocation(u.Message.Chat.ID, s.keyboard)
-
-	msg = tgbotapi.NewMessage(u.Message.Chat.ID, fmt.Sprintf("%s %s\nВони матимуть вигляд: \n`%s`", core.SymbWarning, core.GoogleSuggestion, `50.44639862968634, 30.521755358513595`))
+func (s *TakeNewTaskHandler) Handle(_ context.Context, u *tgbotapi.Update) error {
+	text := fmt.Sprintf("*Перш ніж отримати завдання, вам треба вказати територію, на якій ви можете допомогти.*\n\n"+
+		"- Ви можете поділитися локацією, натиснувши кнопку *%s* _(лише для Android, iOS)_\n"+
+		"- Або якщо ви хочете обрати іншу локацію, прикріпити її, натиснувши %s _(лише для Android, iOS)_\n"+
+		"- %s", CommandGetLocationAuto, core.SymbClip, core.GoogleSuggestion)
+	msg := tgbotapi.NewMessage(u.Message.Chat.ID, text)
 	msg.ParseMode = `markdown`
 	msg.ReplyMarkup = GoogleMapsKeyboard
 	s.handler.Ans(msg)

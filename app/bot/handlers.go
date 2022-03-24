@@ -5,8 +5,6 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jackc/pgx/v4"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"helpers/app/core"
 	"helpers/app/core/db"
@@ -87,17 +85,7 @@ func (s *MessageHandler) Init() {
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandCreateNewTask: &CreateTaskHandler{s, tgbotapi.NewReplyKeyboard(
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto), // collect location
-			),
-			//tgbotapi.NewKeyboardButtonRow(
-			//	tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
-			//),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandToMain),
-			),
-		)},
+		CommandCreateNewTask: &CreateTaskHandler{s, AttachLocationKeyboard},
 		//CommandGetLocationManual: &TakeLocationManualyHandler{s, ToMainKeyboard},
 		CommandFiilTaskText: &WhatFillTaskText{s, ToMainKeyboard},
 		CommandMyTasks:      &ShowMyTasksHandler{s, ToMainKeyboard, CancelTaskKeyboard},
@@ -118,17 +106,8 @@ func (s *MessageHandler) Init() {
 				tgbotapi.NewKeyboardButton(CommandToMain),
 			),
 		)},
-		CommandTakeNewTask: &TakeNewTaskHandlerHandler{s, tgbotapi.NewReplyKeyboard(
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButtonLocation(CommandGetLocationAuto),
-			),
-			//tgbotapi.NewKeyboardButtonRow(
-			//	tgbotapi.NewKeyboardButton(CommandGetLocationManual), // collect location
-			//),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(CommandToMain),
-			),
-		)},
+		CommandTakeNewTask:      &TakeNewTaskHandler{s, AttachLocationKeyboard},
+		CommandGetLocationHotTo: &AttachLocationHowToHandler{s, AttachLocationKeyboard},
 		CommandMyActiveTasks: &MyActiveTasksHandler{s, tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(CommandTakeNewTask),
@@ -180,7 +159,7 @@ func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) 
 	}
 
 	if u.Message == nil {
-		zap.S().Error(`Someone delete bot`)
+		zap.S().Warnf(`Someone delete bot`)
 		return nil
 	}
 
@@ -190,22 +169,22 @@ func (s *MessageHandler) DetectHandler(ctx context.Context, u *tgbotapi.Update) 
 		}
 	}
 
+	if h, ok := s.handlers[u.Message.Text]; ok {
+		return h
+	}
+
 	snu, err := s.SocNetRepoRepo.FindOne(
 		ctx,
 		[]string{`last_received_message`},
 		sq.Eq{`soc_net_id`: strconv.Itoa(int(u.Message.Chat.ID))},
 	)
-	if err != nil && !errors.As(err, &pgx.ErrNoRows) {
+	if core.IsRealError(err) {
 		zap.S().Error(err)
 	}
 	if snu != nil && snu.LastReceivedMessage != `` {
 		if h, ok := s.replyHandlers[snu.LastReceivedMessage]; ok {
 			return h
 		}
-	}
-
-	if h, ok := s.handlers[u.Message.Text]; ok {
-		return h
 	}
 
 	return s.mainTextHandler

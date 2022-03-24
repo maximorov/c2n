@@ -7,6 +7,7 @@ import (
 )
 
 const CommandGetLocationAuto = core.Symbanchor + " Надати геолокацію"
+const CommandGetLocationHotTo = core.SymbInfo + " Як прикріпити іншу геолокацію?"
 
 type TakeLocationAutoHandler struct {
 	handler  *MessageHandler
