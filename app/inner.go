@@ -3,66 +3,24 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 	"helpers/app/bot"
 	"helpers/app/core"
-	"helpers/app/core/db"
 	"helpers/app/domains/task"
-	"helpers/app/domains/task/activity"
 	"helpers/app/domains/user"
 	"helpers/app/domains/user/executor"
 	"helpers/app/domains/user/soc_net"
-	"helpers/app/usecase"
+	"html"
+	"log"
+	"net/http"
 	"strconv"
 	"time"
 )
 
-func botHandlers(
-	ctx context.Context,
-	botApi *tgbotapi.BotAPI,
-	u tgbotapi.UpdateConfig,
-	connPool db.Conn,
-) {
-	exRepo := executor.NewRepo(connPool)
-	taskRepo := task.NewRepo(connPool)
-	tUC := usecase.NewTaskUseCase(connPool)
-
-	msgHandler := bot.NewMessageHandler(
-		botApi,
-		task.NewService(connPool),
-		activity.NewService(connPool),
-		exRepo,
-		executor.NewService(connPool),
-		tUC,
-		soc_net.NewRepo(connPool),
-	)
-
-	go informExecutors(ctx, exRepo, connPool, msgHandler)
-	go setExpired(ctx, taskRepo)
-
-	updates := botApi.GetUpdatesChan(u)
-	for update := range updates {
-		func() {
-			ctx, cancel := context.WithTimeout(ctx, time.Second*30)
-			defer cancel()
-
-			usr, err := authenticateUser(ctx, update, connPool, msgHandler.GetUserRole(ctx, &update))
-			if err != nil {
-				zap.S().Error(err)
-				msgHandler.AnsError(update.Message.Chat.ID, err)
-				return
-			}
-
-			ctx = context.WithValue(ctx, `user`, usr)
-
-			msgHandler.Handle(ctx, &update)
-		}()
-	}
-}
-
-func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.Conn, role user.Role) (*user.User, error) {
+func authenticateUser(ctx context.Context, update tgbotapi.Update, sonNetService *soc_net.Service, userService *user.Service, role user.Role) (*user.User, error) {
 	var fromId int
 
 	switch {
@@ -77,9 +35,6 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 
 	usrSocId := strconv.Itoa(fromId)
 	var userId int
-
-	sonNetService := soc_net.NewService(connPool)
-	userService := user.NewService(connPool)
 
 	usrSoc, err := sonNetService.GetOneBySocNetID(ctx, usrSocId)
 	if err != nil {
@@ -110,7 +65,7 @@ func authenticateUser(ctx context.Context, update tgbotapi.Update, connPool db.C
 	return usr, nil
 }
 
-func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool db.Conn, callBack *bot.MessageHandler) {
+func informExecutors(ctx context.Context, exRepo *executor.Repository, taskService *task.Service, socNetService *soc_net.Service, callBack *bot.MessageHandler) {
 	t := time.NewTicker(time.Minute)
 	for {
 		select {
@@ -137,8 +92,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 						continue
 					}
 
-					s := task.NewService(connPool)
-					tasks, err := s.FindTasksInRadius(ctx, ex.Position, ex.UserId, float64(ex.Area))
+					tasks, err := taskService.FindTasksInRadius(ctx, ex.Position, ex.UserId, float64(ex.Area))
 					if err != nil {
 						zap.S().Error(err)
 					}
@@ -146,8 +100,7 @@ func informExecutors(ctx context.Context, exRepo *executor.Repository, connPool 
 					if len(tasks) == 0 {
 						continue
 					}
-					sSoc := soc_net.NewService(connPool)
-					userSocNet, err := sSoc.GetOneByUserID(ctx, ex.UserId)
+					userSocNet, err := socNetService.GetOneByUserID(ctx, ex.UserId)
 					if err != nil {
 						zap.S().Error(err)
 					}
@@ -215,4 +168,14 @@ func setExpired(ctx context.Context, taskRepo *task.Repository) {
 			}(ctx)
 		}
 	}
+}
+
+func healthcheck() {
+	log.Printf("Starts webserver")
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	})
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

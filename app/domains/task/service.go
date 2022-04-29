@@ -18,18 +18,18 @@ const PI float64 = 3.141592653589793
 
 func NewService(connPool db.Conn) *Service {
 	return &Service{
-		repo:         NewRepo(connPool),
+		Repo:         NewRepo(connPool),
 		repoActivity: activity.NewRepo(connPool),
 	}
 }
 
 type Service struct {
-	repo         *Repository
+	Repo         *Repository
 	repoActivity *activity.Repository
 }
 
 func (s *Service) CreateTask(ctx context.Context, userId int, x, y float64, text string) (int, error) {
-	id, err := s.repo.CreateOne(ctx, map[string]interface{}{
+	id, err := s.Repo.CreateOne(ctx, map[string]interface{}{
 		`user_id`:  userId,
 		`text`:     text,
 		`position`: db.CreatePoint(x, y),
@@ -43,17 +43,17 @@ func (s *Service) GetUsersLastRawTask(ctx context.Context, userId int) (*Task, e
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	sb := psql.Select([]string{`id`, `position`, `created`}...).
-		From(`"` + s.repo.Schema().TableName() + `"`).
+		From(`"` + s.Repo.Schema().TableName() + `"`).
 		Where(sq.Eq{`user_id`: userId, `status`: `raw`}).
 		OrderBy(`created DESC`).
 		Limit(1)
-	err := core.FindOneSB(ctx, s.repo.Conn(), sb, task)
+	err := core.FindOneSB(ctx, s.Repo.Conn(), sb, task)
 
 	return task, err
 }
 
 func (s *Service) GetUserUndoneTasks(ctx context.Context, userId int) ([]*Task, error) {
-	tasks, err := s.repo.FindMany(ctx, []string{
+	tasks, err := s.Repo.FindMany(ctx, []string{
 		`id`, `status`, `text`,
 	}, map[string]interface{}{
 		`user_id`: userId,
@@ -64,7 +64,7 @@ func (s *Service) GetUserUndoneTasks(ctx context.Context, userId int) ([]*Task, 
 }
 
 func (s *Service) IsUserHaveUndoneTasks(ctx context.Context, userId int) bool {
-	_, err := s.repo.FindOne(ctx, []string{
+	_, err := s.Repo.FindOne(ctx, []string{
 		`id`,
 	}, map[string]interface{}{
 		`user_id`: userId,
@@ -137,7 +137,7 @@ func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, 
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	sb := psql.Select([]string{`id`, `position`, `user_id`, `status`, `text`, `deadline`, `created`, `updated`}...).
-		From(`"` + s.repo.Schema().TableName() + `"`).
+		From(`"` + s.Repo.Schema().TableName() + `"`).
 		Where(sq.Eq{`status`: `new`}).
 		Where(sq.NotEq{`id`: hiddenTasks})
 
@@ -146,7 +146,7 @@ func (s *Service) FindTasksInRadius(ctx context.Context, location pgtype.Point, 
 		sb.Where(sq.NotEq{`user_id`: exId})
 	}
 
-	err = core.FindManySB(ctx, s.repo.Conn(), sb, &tasks)
+	err = core.FindManySB(ctx, s.Repo.Conn(), sb, &tasks)
 	if err != nil {
 		return nil, err
 	}

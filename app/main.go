@@ -2,13 +2,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"go.uber.org/zap"
 	"helpers/app/bootstrap"
+	"helpers/app/bot"
 	"helpers/app/core/db"
-	"html"
+	"helpers/app/domains/task"
+	"helpers/app/domains/task/activity"
+	"helpers/app/domains/user"
+	"helpers/app/domains/user/executor"
+	"helpers/app/domains/user/soc_net"
+	"helpers/app/usecase"
 	"log"
-	"net/http"
+	"time"
 )
 
 func init() {
@@ -19,31 +25,55 @@ func init() {
 
 func main() {
 	ctx := context.Background()
-	connPool := db.Pool(ctx, bootstrap.Cnf.DB)
-	bot, err := tgbotapi.NewBotAPI(bootstrap.Cnf.TelegramToken)
+	botApi, err := tgbotapi.NewBotAPI(bootstrap.Cnf.TelegramToken)
 	if err != nil {
 		log.Panic(err)
 	}
-
-	bot.Debug = bootstrap.Cnf.Debug
+	botApi.Debug = bootstrap.Cnf.Debug
 	if bootstrap.Cnf.Debug {
-		log.Printf("Authorized on account %s", bot.Self.UserName)
+		log.Printf("Authorized on account %s", botApi.Self.UserName)
 	}
 
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	connPool := db.Pool(ctx, bootstrap.Cnf.DB)
+	exService := executor.NewService(connPool)
+	taskService := task.NewService(connPool)
+	tUC := usecase.NewTaskUseCase(connPool)
+	socNetService := soc_net.NewService(connPool)
+	sonNetService := soc_net.NewService(connPool)
+	userService := user.NewService(connPool)
+	activiryService := activity.NewService(connPool)
 
-	go botHandlers(ctx, bot, u, connPool)
+	msgHandler := bot.NewMessageHandler(
+		botApi,
+		taskService,
+		activiryService,
+		exService,
+		tUC,
+		socNetService.Repo,
+	)
 
-	healthcheck()
-}
+	go informExecutors(ctx, exService.Repo, taskService, socNetService, msgHandler)
+	go setExpired(ctx, taskService.Repo)
+	go healthcheck()
 
-func healthcheck() {
-	log.Printf("Starts webserver")
+	update := tgbotapi.NewUpdate(0)
+	update.Timeout = 60
+	updates := botApi.GetUpdatesChan(update)
+	for u := range updates {
+		func(u tgbotapi.Update) {
+			ctx, cancel := context.WithTimeout(ctx, time.Second*30)
+			defer cancel()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
-	})
+			usr, err := authenticateUser(ctx, u, sonNetService, userService, msgHandler.GetUserRole(ctx, &u))
+			if err != nil {
+				zap.S().Error(err)
+				msgHandler.AnsError(u.Message.Chat.ID, err)
+				return
+			}
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+			ctx = context.WithValue(ctx, `user`, usr)
+
+			msgHandler.Handle(ctx, &u)
+		}(u)
+	}
 }

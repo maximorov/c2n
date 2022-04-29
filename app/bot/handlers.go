@@ -25,7 +25,6 @@ func NewMessageHandler(
 	BotApi *tgbotapi.BotAPI,
 	ts *task.Service,
 	tas *activity.Service,
-	er *executor.Repository,
 	es *executor.Service,
 	tuc *usecase.TaskUseCase,
 	snr *soc_net.Repository,
@@ -34,7 +33,6 @@ func NewMessageHandler(
 		BotApi:              BotApi,
 		TaskService:         ts,
 		TaskActivityService: tas,
-		ExecutorRepo:        er,
 		ExecutorService:     es,
 		TaskUseCase:         tuc,
 		SocNetRepoRepo:      snr,
@@ -57,7 +55,6 @@ type MessageHandler struct {
 	BotApi              *tgbotapi.BotAPI
 	TaskService         *task.Service
 	TaskActivityService *activity.Service
-	ExecutorRepo        *executor.Repository
 	SocNetRepoRepo      *soc_net.Repository
 	ExecutorService     *executor.Service
 	TaskUseCase         *usecase.TaskUseCase
